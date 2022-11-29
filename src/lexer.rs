@@ -1,17 +1,9 @@
+use crate::types::*;
 use regex::Regex;
 
-#[derive(Debug, PartialEq, Eq)]
-enum Tokens {
-    Invalid,
-    OpeningParen,
-    ClosingParen,
-    Integer(i32),
-    Symbol(String),
-}
-
-fn tokenize(expression: String) -> Vec<Tokens> {
-    let isSymbol = Regex::new(r"[A-Za-z]").unwrap();
-    let isInteger = Regex::new(r"\d+").unwrap();
+pub fn tokenize(expression: String) -> Vec<Tokens> {
+    let is_symbol = Regex::new(r"[A-Za-z+*-]").unwrap();
+    let is_integer = Regex::new(r"\d+").unwrap();
 
     return expression
         .replace("(", " ( ")
@@ -21,16 +13,16 @@ fn tokenize(expression: String) -> Vec<Tokens> {
             match t {
                 "(" => Tokens::OpeningParen,
                 ")" => Tokens::ClosingParen,
-                i if isSymbol.is_match(i) => Tokens::Symbol(i.to_string()),
-                i if isInteger.is_match(i) => Tokens::Integer(i.parse::<i32>().unwrap()),
-                i => Tokens::Symbol(i.to_string()),
+                i if is_symbol.is_match(i) => Tokens::Symbol(i.to_string()),
+                i if is_integer.is_match(i) => Tokens::Integer(i.parse::<i32>().unwrap()),
+                _i => Tokens::Invalid,
             }
         })
         .collect::<Vec<_>>();
 }
 
 mod tests {
-    use super::{tokenize, Tokens};
+    use super::tokenize;
 
     #[test]
     fn test_tokenizer() {
