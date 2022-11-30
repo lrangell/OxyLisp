@@ -1,8 +1,10 @@
+use std::collections::hash_map;
+
 use anyhow::{Context, Result};
 
 use crate::types::*;
 
-pub fn aritimetic() -> (String, BuiltinFn) {
+pub fn aritimetic() -> (String, Objects) {
     let add: BuiltinFn = |nums: &[Primitive]| -> Result<Primitive> {
         nums.iter()
             .filter_map(|s| match s {
@@ -13,5 +15,11 @@ pub fn aritimetic() -> (String, BuiltinFn) {
             .map(Primitive::Integer)
             .context("All arguments must be integers")
     };
-    return ("+".to_string(), add.to_owned());
+    return ("+".to_string(), Objects::BuiltinFn(add));
+}
+
+pub fn init_env() -> Env {
+    return Env {
+        vars: hash_map::HashMap::from([aritimetic()]),
+    };
 }
