@@ -1,5 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
 use anyhow::Result;
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
 #[derive(Debug)]
 pub enum Tokens {
@@ -24,6 +26,18 @@ pub enum Primitive {
     Bool(bool),
 }
 
+impl fmt::Display for Primitive {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Primitive::String(b) => write!(f, "{}", b),
+            Primitive::Symbol(b) => write!(f, "{}", b),
+            Primitive::Integer(b) => write!(f, "{}", b),
+            Primitive::Bool(b) => write!(f, "{}", b),
+        }
+        // write!(f, "{}", *self)
+    }
+}
+
 pub type BuiltinFn = fn(&[Primitive]) -> Result<Primitive>;
 
 #[derive(Debug, Clone)]
@@ -33,7 +47,12 @@ pub enum Expression {
     Expression(Box<Expression>),
 }
 
-#[derive(Debug)]
+#[derive(Clone)]
+pub enum Objects {
+    Primitive(Primitive),
+    Lambda(Lambda),
+    BuiltinFn(BuiltinFn),
+}
 pub struct Env {
-    vars: HashMap<String, Primitive>,
+    pub vars: HashMap<String, Objects>,
 }
