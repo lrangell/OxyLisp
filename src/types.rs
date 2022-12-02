@@ -13,9 +13,9 @@ pub enum Tokens {
 }
 
 #[derive(Debug, Clone)]
-struct Lambda {
+struct Lambda<'a> {
     args: HashMap<String, Primitive>,
-    body: Vec<Expression>,
+    body: Vec<Form<'a>>,
 }
 
 #[derive(Debug, Clone)]
@@ -38,19 +38,23 @@ impl fmt::Display for Primitive {
     }
 }
 
-pub type BuiltinFn = fn(&[Primitive]) -> Result<Primitive>;
+pub type BuiltinFn = fn(Vec<Primitive>) -> Result<Primitive>;
 
 #[derive(Debug, Clone)]
-pub enum Expression {
+pub enum Form<'a> {
+    Symbol(String),
     Primitive(Primitive),
-    List(Vec<Expression>),
-    Expression(Box<Expression>),
+    // List(Vec<Form>),
+    Expression(Expression<'a>),
+    // Form(Box<Form>),
 }
+
+pub type Expression<'a> = (String, &'a [Form<'a>]);
 
 #[derive(Clone)]
 pub enum Objects {
     Primitive(Primitive),
-    Lambda(Lambda),
+    // Lambda(Lambda),
     BuiltinFn(BuiltinFn),
 }
 pub struct Env {
