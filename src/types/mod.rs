@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
-mod code_chunk;
+pub mod Errors;
+pub mod codeChunk;
 use anyhow::Result;
 use std::{collections::HashMap, fmt};
 
