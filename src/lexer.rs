@@ -3,7 +3,7 @@ use crate::types::*;
 use regex::Regex;
 use std::collections::HashMap;
 
-pub fn tokenize(expression: String) -> Vec<Tokens> {
+pub fn tokenize(expression: &str) -> Vec<Tokens> {
     let is_symbol = Regex::new(r"[A-Za-z+*-]").unwrap();
     let is_integer = Regex::new(r"\d+").unwrap();
 

@@ -1,9 +1,10 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
+mod code_chunk;
 use anyhow::Result;
 use std::{collections::HashMap, fmt};
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum TokenBounds {
     OpeningParen,
     ClosingParen,
