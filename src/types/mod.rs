@@ -3,19 +3,22 @@
 use anyhow::Result;
 use std::{collections::HashMap, fmt};
 
-#[derive(Debug)]
-pub enum Tokens {
-    Invalid,
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+pub enum TokenBounds {
     OpeningParen,
     ClosingParen,
-    Integer(i32),
-    Symbol(String),
+}
+#[derive(Debug, Clone)]
+pub enum Tokens {
+    Invalid,
+    TokenBounds(TokenBounds),
+    Primitive(Primitive),
 }
 
 #[derive(Debug, Clone)]
-struct Lambda<'a> {
+struct Lambda {
     args: HashMap<String, Primitive>,
-    body: Vec<Form<'a>>,
+    body: Vec<Form>,
 }
 
 #[derive(Debug, Clone)]
@@ -41,15 +44,15 @@ impl fmt::Display for Primitive {
 pub type BuiltinFn = fn(Vec<Primitive>) -> Result<Primitive>;
 
 #[derive(Debug, Clone)]
-pub enum Form<'a> {
+pub enum Form {
     Symbol(String),
     Primitive(Primitive),
     // List(Vec<Form>),
-    Expression(Expression<'a>),
+    Expression(Expression),
     // Form(Box<Form>),
 }
 
-pub type Expression<'a> = (String, &'a [Form<'a>]);
+pub type Expression = (String, Vec<Form>);
 
 #[derive(Clone)]
 pub enum Objects {
@@ -59,4 +62,12 @@ pub enum Objects {
 }
 pub struct Env {
     pub vars: HashMap<String, Objects>,
+}
+
+pub struct ParsingError;
+
+impl From<Primitive> for Form {
+    fn from(p: Primitive) -> Self {
+        Form::Primitive(p)
+    }
 }
