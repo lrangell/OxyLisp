@@ -1,5 +1,7 @@
+use crate::parser::ast;
 use crate::types::*;
 use regex::Regex;
+use std::collections::HashMap;
 
 pub fn tokenize(expression: String) -> Vec<Tokens> {
     let is_symbol = Regex::new(r"[A-Za-z+*-]").unwrap();
@@ -11,10 +13,14 @@ pub fn tokenize(expression: String) -> Vec<Tokens> {
         .split_whitespace()
         .map(|t| -> Tokens {
             match t {
-                "(" => Tokens::OpeningParen,
-                ")" => Tokens::ClosingParen,
-                i if is_symbol.is_match(i) => Tokens::Symbol(i.to_string()),
-                i if is_integer.is_match(i) => Tokens::Integer(i.parse::<i32>().unwrap()),
+                "(" => Tokens::TokenBounds(TokenBounds::ClosingParen),
+                ")" => Tokens::TokenBounds(TokenBounds::OpeningParen),
+                "true" => Tokens::Primitive(Primitive::Bool(true)),
+                "false" => Tokens::Primitive(Primitive::Bool(false)),
+                i if is_symbol.is_match(i) => Tokens::Primitive(Primitive::String(i.to_string())),
+                i if is_integer.is_match(i) => {
+                    Tokens::Primitive(Primitive::Integer(i.parse::<i32>().unwrap()))
+                }
                 _i => Tokens::Invalid,
             }
         })
