@@ -7,14 +7,14 @@ pub fn tokenize(expression: &str) -> Vec<Tokens> {
     let is_symbol = Regex::new(r"[A-Za-z+*-]").unwrap();
     let is_integer = Regex::new(r"\d+").unwrap();
 
-    return expression
+    let tokens = expression
         .replace("(", " ( ")
         .replace(")", " ) ")
         .split_whitespace()
         .map(|t| -> Tokens {
             match t {
-                "(" => Tokens::TokenBounds(TokenBounds::ClosingParen),
-                ")" => Tokens::TokenBounds(TokenBounds::OpeningParen),
+                "(" => Tokens::TokenBounds(TokenBounds::OpeningParen),
+                ")" => Tokens::TokenBounds(TokenBounds::ClosingParen),
                 "true" => Tokens::Primitive(Primitive::Bool(true)),
                 "false" => Tokens::Primitive(Primitive::Bool(false)),
                 i if is_symbol.is_match(i) => Tokens::Primitive(Primitive::String(i.to_string())),
@@ -25,6 +25,9 @@ pub fn tokenize(expression: &str) -> Vec<Tokens> {
             }
         })
         .collect::<Vec<_>>();
+    debug!("Tokenizing code:\n {}", expression);
+    debug!("Tokens: {:?}", tokens);
+    tokens
 }
 
 mod tests {
