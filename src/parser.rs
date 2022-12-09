@@ -1,24 +1,48 @@
-use crate::types::codeChunk::CodeChunk;
 use crate::types::*;
+use anyhow::*;
 use std::vec::Vec;
 
-pub fn ast(tokens: Vec<Tokens>) -> Option<Form> {
-    debug!("AST Tokens:\n{:?}", tokens);
-    let (toCall, args) = tokens.split_first()?;
-    if let Tokens::Literal(Literal::String(s)) = toCall {
-        let code = CodeChunk {
-            tokens: args.to_vec(),
-        };
-        let args: Vec<Form> = code.into_iter().collect();
-        // let expression = Form::Expression((s.to_string(), args));
-        debug!(
-            "ast: Expression:\nSymbol: {}\n Args: {:?} ",
-            s.to_string(),
-            args
-        );
-        let expression = Form::Expression((s.to_string(), args));
-        return Some(expression);
+pub fn parse(tokens: &[Tokens]) -> Result<Vec<Form>> {
+    if tokens.is_empty() {
+        let r: Vec<Form> = [].to_vec();
+        return Ok(r);
     }
-    debug!("Unable to parse tokens: {:?}", tokens);
-    None
+    let (head, tail) = tokens.split_first().unwrap();
+
+    debug!("head: {:?} tail: {:?}", head, tail);
+
+    match &head {
+        Tokens::Bounds(TokenBounds::LeftParen) => {
+            if let (Tokens::Symbol(sym), rest) = tail.split_first().unwrap() {
+                // let (_, args) = rest.split_last().expect("4c");
+                let n = rest
+                    .iter()
+                    .rposition(|t| match t {
+                        Tokens::Bounds(TokenBounds::RightParen) => true,
+                        _ => false,
+                    })
+                    .unwrap();
+                let (args, rr) = rest.split_at(n);
+                let mut ca = [Form::CallExpression((sym.clone(), parse(args).unwrap()))].to_vec();
+                let rrr = parse(rr).unwrap();
+                ca.extend(rrr);
+                return Ok(ca);
+            } else {
+                return Ok([].to_vec());
+            }
+        }
+        Tokens::Literal(l) => {
+            let uu = parse(tail)?;
+            let mut r = [Form::Literal(l.to_owned())].to_vec();
+            r.extend(uu);
+            Ok(r)
+        }
+        Tokens::Bounds(TokenBounds::RightParen) => {
+            let mut r: Vec<Form> = [].to_vec();
+            let uu = parse(tail)?;
+            r.extend(uu);
+            return Ok(r);
+        }
+        Tokens::Symbol(s) => unreachable!(),
+    }
 }
