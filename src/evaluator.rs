@@ -3,20 +3,20 @@ use crate::types::*;
 use anyhow::Result;
 use anyhow::*;
 
-pub fn eval(code: CodeChunk, env: &Env) -> Result<Vec<Primitive>> {
+pub fn eval(code: CodeChunk, env: &Env) -> Result<Vec<Literal>> {
     debug!("Code: {code}");
-    let a: Result<Vec<Primitive>> = code.into_iter().map(|form| eval_form(&form, env)).collect();
+    let a: Result<Vec<Literal>> = code.into_iter().map(|form| eval_form(&form, env)).collect();
     a
 }
 
-pub fn eval_form(form: &Form, env: &Env) -> Result<Primitive> {
+pub fn eval_form(form: &Form, env: &Env) -> Result<Literal> {
     debug!("Form: {form}");
     match form {
-        Form::Primitive(p) => Ok(p.clone()),
+        Form::Literal(p) => Ok(p.clone()),
         Form::Symbol(s) => {
             let obj = env.vars.get(s).expect("aaa");
             match obj {
-                Objects::Primitive(p) => Ok(p.clone()),
+                Objects::Literal(p) => Ok(p.clone()),
                 _ => Err(anyhow!("Symbol not defined")),
             }
         }
@@ -26,7 +26,7 @@ pub fn eval_form(form: &Form, env: &Env) -> Result<Primitive> {
                 Objects::BuiltinFn(f) => {
                     f(forms.iter().map(|a| eval_form(a, env).unwrap()).collect())
                 }
-                Objects::Primitive(p) => Ok(p.clone()),
+                Objects::Literal(p) => Ok(p.clone()),
             }
         }
     }

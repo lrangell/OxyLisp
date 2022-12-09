@@ -1,26 +1,26 @@
 use crate::prelude::*;
-use anyhow::{Context, Ok, Result};
+use anyhow::{Context, Result};
 use std::collections::hash_map;
 
 pub fn aritimetic() -> [(String, Objects); 2] {
-    let add: BuiltinFn = |nums: Vec<Primitive>| -> Result<Primitive> {
+    let add: BuiltinFn = |nums: Vec<Literal>| -> Result<Literal> {
         nums.iter()
             .filter_map(|s| match s {
-                Primitive::Integer(i) => Some(*i),
+                Literal::Integer(i) => Some(*i),
                 _ => None,
             })
             .reduce(|acc, curr| acc + curr)
-            .map(Primitive::Integer)
+            .map(Literal::Integer)
             .context("All arguments must be integers")
     };
-    let mult: BuiltinFn = |nums: Vec<Primitive>| -> Result<Primitive> {
+    let mult: BuiltinFn = |nums: Vec<Literal>| -> Result<Literal> {
         nums.iter()
             .filter_map(|s| match s {
-                Primitive::Integer(i) => Some(*i),
+                Literal::Integer(i) => Some(*i),
                 _ => None,
             })
             .reduce(|acc, curr| acc * curr)
-            .map(Primitive::Integer)
+            .map(Literal::Integer)
             .context("All arguments must be integers")
     };
     return [
