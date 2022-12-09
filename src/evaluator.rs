@@ -1,13 +1,8 @@
-use crate::types::codeChunk::CodeChunk;
+use crate::lexer::tokenize;
+use crate::parser::parse;
 use crate::types::*;
 use anyhow::Result;
 use anyhow::*;
-
-pub fn eval(code: CodeChunk, env: &Env) -> Result<Vec<Literal>> {
-    debug!("Code: {code}");
-    let a: Result<Vec<Literal>> = code.into_iter().map(|form| eval_form(&form, env)).collect();
-    a
-}
 
 pub fn eval_form(form: &Form, env: &Env) -> Result<Literal> {
     debug!("Form: {form}");
@@ -16,19 +11,29 @@ pub fn eval_form(form: &Form, env: &Env) -> Result<Literal> {
         Form::Symbol(s) => {
             let obj = env.vars.get(s).expect("aaa");
             match obj {
-                Objects::Literal(p) => Ok(p.clone()),
-                _ => Err(anyhow!("Symbol not defined")),
+                RuntimeObject::Primitive(p) => Ok(p.clone()),
+                _ => unimplemented!(),
             }
         }
-        Form::Expression((to_call, forms)) => {
+        Form::CallExpression((to_call, forms)) => {
             let function = env.vars.get(to_call).expect("not defined");
             match function {
-                Objects::BuiltinFn(f) => {
+                RuntimeObject::Function(f) => {
                     f(forms.iter().map(|a| eval_form(a, env).unwrap()).collect())
                 }
-                Objects::Literal(p) => Ok(p.clone()),
+                RuntimeObject::Primitive(p) => Ok(p.clone()),
             }
         }
     }
 }
+pub fn eval(forms: Vec<Form>, env: &Env) -> Result<Vec<Literal>> {
+    forms.iter().map(|f| eval_form(f, env)).collect()
+}
+
+pub fn eval_from_str(code: &str, env: &Env) -> Result<Vec<Literal>> {
+    let tokens = tokenize(code);
+    let forms = parse(&tokens)?;
+    eval(forms, env)
+}
+
 // TODO: implement into for types

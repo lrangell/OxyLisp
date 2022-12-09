@@ -2,7 +2,7 @@ use crate::prelude::*;
 use anyhow::{Context, Result};
 use std::collections::hash_map;
 
-pub fn aritimetic() -> [(String, Objects); 2] {
+pub fn aritimetic() -> [(String, RuntimeObject); 2] {
     let add: BuiltinFn = |nums: Vec<Literal>| -> Result<Literal> {
         nums.iter()
             .filter_map(|s| match s {
@@ -24,8 +24,8 @@ pub fn aritimetic() -> [(String, Objects); 2] {
             .context("All arguments must be integers")
     };
     return [
-        ("+".to_string(), Objects::BuiltinFn(add)),
-        ("*".to_string(), Objects::BuiltinFn(mult)),
+        ("+".to_string(), RuntimeObject::Function(add)),
+        ("*".to_string(), RuntimeObject::Function(mult)),
     ];
 }
 
