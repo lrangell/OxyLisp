@@ -6,6 +6,7 @@ impl fmt::Display for Tokens {
             Self::Bounds(TokenBounds::LeftParen) => write!(f, "("),
             Self::Bounds(TokenBounds::RightParen) => write!(f, ")"),
             Self::Literal(p) => write!(f, "{}", p),
+            Self::Symbol(p) => write!(f, "{}", p),
         }
     }
 }
@@ -17,12 +18,13 @@ impl fmt::Display for TokenBounds {
         }
     }
 }
+
 impl fmt::Display for Form {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Form::Literal(p) => write!(f, "{}", p),
             Form::Symbol(s) => write!(f, "{}", s),
-            Form::Expression((to_call, forms)) => {
+            Form::CallExpression((to_call, forms)) => {
                 let forms_string: Vec<String> = forms.iter().map(|f| f.to_string()).collect();
                 write!(f, "({} {})", to_call, forms_string.join(" "))
             }

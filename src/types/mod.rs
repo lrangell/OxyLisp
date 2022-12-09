@@ -37,19 +37,22 @@ pub type BuiltinFn = fn(Vec<Literal>) -> Result<Literal>;
 #[derive(Debug, Clone)]
 pub enum Form {
     Literal(Literal),
-    Expression(Expression),
+    CallExpression(CallExpression),
     Symbol(String),
 }
 
-pub type Expression = (String, Vec<Form>);
+pub type CallExpression = (String, Vec<Form>);
 
-#[derive(Clone)]
-pub enum Objects {
-    Literal(Literal),
-    BuiltinFn(BuiltinFn),
+trait Eval {
+    fn eval(&self) -> Form;
+}
+
+pub enum RuntimeObject {
+    Primitive(Literal),
+    Function(BuiltinFn),
 }
 pub struct Env {
-    pub vars: HashMap<String, Objects>,
+    pub vars: HashMap<String, RuntimeObject>,
 }
 
 impl From<Literal> for Form {
