@@ -21,7 +21,7 @@ pub enum Tokens {
 
 #[derive(Debug, Clone)]
 struct Lambda {
-    args: HashMap<String, Literal>,
+    args: HashMap<String, Form>,
     body: Vec<Form>,
 }
 
@@ -32,7 +32,7 @@ pub enum Literal {
     Bool(bool),
 }
 
-pub type BuiltinFn = fn(Vec<Literal>) -> Result<Literal>;
+pub type BuiltinFn = fn(&[Form]) -> Result<Form>;
 
 #[derive(Debug, Clone)]
 pub enum Form {
@@ -58,5 +58,16 @@ pub struct Env {
 impl From<Literal> for Form {
     fn from(p: Literal) -> Self {
         Form::Literal(p)
+    }
+}
+
+impl From<i32> for Literal {
+    fn from(p: i32) -> Self {
+        Literal::Integer(p)
+    }
+}
+impl From<i32> for Form {
+    fn from(p: i32) -> Self {
+        Form::Literal(Literal::Integer(p))
     }
 }

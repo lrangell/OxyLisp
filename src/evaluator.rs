@@ -1,7 +1,8 @@
+use std::borrow::Borrow;
+
 use crate::lexer::tokenize;
 use crate::parser::parse;
 use crate::types::*;
-use anyhow::Result;
 use anyhow::*;
 
 pub fn eval_form(form: &Form, env: &Env) -> Result<Literal> {
@@ -12,14 +13,19 @@ pub fn eval_form(form: &Form, env: &Env) -> Result<Literal> {
             let obj = env.vars.get(s).expect("aaa");
             match obj {
                 RuntimeObject::Primitive(p) => Ok(p.clone()),
-                _ => unimplemented!(),
+                _ => Err(anyhow!("")),
             }
         }
         Form::CallExpression((to_call, forms)) => {
             let function = env.vars.get(to_call).expect("not defined");
             match function {
                 RuntimeObject::Function(f) => {
-                    f(forms.iter().map(|a| eval_form(a, env).unwrap()).collect())
+                    let args: Result<Vec<Form>> = forms
+                        .iter()
+                        .map(|a| Ok(eval_form(a, env)?.into()))
+                        .collect();
+                    let returned_value = f(args?.as_slice())?;
+                    eval_form(&returned_value.borrow(), env)
                 }
                 RuntimeObject::Primitive(p) => Ok(p.clone()),
             }

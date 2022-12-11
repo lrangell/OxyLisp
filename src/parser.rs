@@ -1,5 +1,5 @@
 use crate::types::*;
-use anyhow::*;
+use anyhow::{anyhow, Result};
 use std::vec::Vec;
 
 pub fn parse(tokens: &[Tokens]) -> Result<Vec<Form>> {
@@ -28,7 +28,7 @@ pub fn parse(tokens: &[Tokens]) -> Result<Vec<Form>> {
                 ca.extend(rrr);
                 return Ok(ca);
             } else {
-                return Ok([].to_vec());
+                return Err(anyhow!("First element of a form must be a symbol"));
             }
         }
         Tokens::Literal(l) => {
@@ -37,12 +37,7 @@ pub fn parse(tokens: &[Tokens]) -> Result<Vec<Form>> {
             r.extend(uu);
             Ok(r)
         }
-        Tokens::Bounds(TokenBounds::RightParen) => {
-            let mut r: Vec<Form> = [].to_vec();
-            let uu = parse(tail)?;
-            r.extend(uu);
-            return Ok(r);
-        }
+        Tokens::Bounds(TokenBounds::RightParen) => parse(tail),
         Tokens::Symbol(s) => unreachable!(),
     }
 }
