@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 pub mod Errors;
-pub mod codeChunk;
 pub mod display;
 use anyhow::Result;
 use std::{collections::HashMap, fmt};
@@ -32,7 +31,7 @@ pub enum Literal {
     Bool(bool),
 }
 
-pub type BuiltinFn = fn(&[Form]) -> Result<Form>;
+pub type BuiltinFn = fn(&[Form], &mut Env) -> Result<Form>;
 
 #[derive(Debug, Clone)]
 pub enum Form {
@@ -47,6 +46,7 @@ trait Eval {
     fn eval(&self) -> Form;
 }
 
+#[derive(Clone)]
 pub enum RuntimeObject {
     Primitive(Literal),
     Function(BuiltinFn),
@@ -58,6 +58,16 @@ pub struct Env {
 impl From<Literal> for Form {
     fn from(p: Literal) -> Self {
         Form::Literal(p)
+    }
+}
+
+impl From<Form> for Literal {
+    fn from(value: Form) -> Self {
+        match value {
+            Form::Literal(l) => l,
+            Form::CallExpression(_) => todo!(),
+            Form::Symbol(s) => todo!(),
+        }
     }
 }
 

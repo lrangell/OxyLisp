@@ -38,6 +38,11 @@ pub fn parse(tokens: &[Tokens]) -> Result<Vec<Form>> {
             Ok(r)
         }
         Tokens::Bounds(TokenBounds::RightParen) => parse(tail),
-        Tokens::Symbol(s) => unreachable!(),
+        Tokens::Symbol(s) => {
+            let uu = parse(tail)?;
+            let mut r = [Form::Symbol(s.to_owned())].to_vec();
+            r.extend(uu);
+            Ok(r)
+        } // &s => Ok(vec![s.into()]),
     }
 }

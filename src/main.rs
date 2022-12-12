@@ -1,5 +1,5 @@
 #![feature(iter_advance_by)]
-use crate::types::{codeChunk::CodeChunk, Literal};
+
 #[macro_use]
 extern crate log;
 
@@ -12,19 +12,12 @@ mod types;
 
 fn main() {
     env_logger::init();
-    // std::env::set_var("RUST_LOG", "trace");
-    let a = Literal::Bool(true);
-    let b = Literal::Integer(4444);
-    // let addcode = "(+ 1 (* 10 (+ 1 1)) 2)";
-    let addcode = "(+ 1 (* 10 2) 2 100)";
-    let code = CodeChunk::new(addcode);
-    // let code2 = CodeChunk::new(addcode);
-    // let cvec: Vec<types::Form> = code2.into_iter().collect();
-    // println!("cvec: {:?}", cvec);
+    let defcode = "(def xx (+ 50 (* 25 2)) )";
+    // let addcode = "(+ 1 (* 10 2) 2 100)";
+    let addcode = "(+ xx (* 10 2) )";
 
-    let basic_env = env::init_env();
-    let res = evaluator::eval(code, &basic_env);
-    debug!("debug");
-    println!("Hello, world! {} {}", a, b);
-    println!("res: {:?}", res);
+    let mut basic_env = env::init_env();
+    let __r = evaluator::eval_from_str(defcode, &mut basic_env);
+    let r = evaluator::eval_from_str(addcode, &mut basic_env);
+    println!("{:?}", r);
 }

@@ -3,7 +3,7 @@ use anyhow::*;
 use std::collections::hash_map;
 
 pub fn aritimetic() -> [(String, RuntimeObject); 2] {
-    let add: BuiltinFn = |nums: &[Form]| -> Result<Form> {
+    let add: BuiltinFn = |nums: &[Form], _| -> Result<Form> {
         nums.iter()
             .filter_map(|s| match s {
                 Form::Literal(Literal::Integer(i)) => Some(*i),
@@ -12,12 +12,8 @@ pub fn aritimetic() -> [(String, RuntimeObject); 2] {
             .reduce(|acc, curr| acc + curr)
             .map(|v| v.into())
             .context("44")
-
-        // .ok_or(Err("44444").into())
-        // .ok_or("dddd")
-        // .context("All arguments must be integers")
     };
-    let mult: BuiltinFn = |nums: &[Form]| -> Result<Form> {
+    let mult: BuiltinFn = |nums: &[Form], _| -> Result<Form> {
         nums.iter()
             .filter_map(|s| match s {
                 Form::Literal(Literal::Integer(i)) => Some(*i),
@@ -33,8 +29,28 @@ pub fn aritimetic() -> [(String, RuntimeObject); 2] {
     ];
 }
 
-pub fn init_env() -> Env {
-    return Env {
-        vars: hash_map::HashMap::from(aritimetic()),
+pub fn defs() -> [(String, RuntimeObject); 1] {
+    let def: BuiltinFn = |forms: &[Form], env: &mut Env| -> Result<Form> {
+        match forms {
+            [Form::Symbol(symbol), Form::Literal(value)] => {
+                env.vars
+                    .insert(symbol.to_string(), RuntimeObject::Primitive(value.clone()));
+                Ok(Literal::Bool(true).into())
+            }
+            _ => Err(anyhow!("err")),
+        }
     };
+    [("def".to_string(), RuntimeObject::Function(def))]
+}
+
+pub fn init_env() -> Env {
+    // let funs = [&defs()[..], &aritimetic()[..]].concat().to_owned();
+    let funs: Vec<(String, RuntimeObject)> =
+        defs().iter().chain(aritimetic().iter()).cloned().collect();
+    let mut vars: std::collections::HashMap<String, RuntimeObject> = hash_map::HashMap::new();
+    for (k, v) in funs {
+        vars.insert(k, v);
+    }
+
+    Env { vars }
 }
