@@ -8,6 +8,9 @@ mod evaluator;
 mod lexer;
 mod parser;
 mod prelude;
+mod repl;
+#[cfg(test)]
+mod tests;
 mod types;
 
 fn main() {

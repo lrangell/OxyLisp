@@ -31,7 +31,7 @@ impl fmt::Display for Form {
             }
             Form::List(forms) => {
                 let forms_string: Vec<String> = forms.iter().map(|f| f.to_string()).collect();
-                write!(f, "[{}]", forms_string.join(", "))
+                write!(f, "[{}]", forms_string.join(" "))
             }
         }
     }
@@ -45,7 +45,7 @@ impl fmt::Display for Literal {
             Literal::Bool(s) => write!(f, "{s}"),
             Literal::List(s) => {
                 let literal_strings: Vec<String> = s.iter().map(|p| p.to_string()).collect();
-                write!(f, "[{}]", literal_strings.join(", "))
+                write!(f, "[{}]", literal_strings.join(" "))
             }
         }
     }

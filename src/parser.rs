@@ -15,8 +15,9 @@ pub fn parse(tokens: &[Tokens]) -> Result<Vec<Form>> {
 
     match &head {
         Tokens::Bounds(TokenBounds::LeftParen) => {
-            if let (Tokens::Symbol(sym), right_tokens) =
-                tail.split_first().ok_or("Unexpected empty parens")?
+            if let (Tokens::Symbol(sym), right_tokens) = tail
+                .split_first()
+                .ok_or(anyhow!("Unexpected empty parens"))?
             {
                 let (args_tokens, rest) =
                     split_at_bound(right_tokens, Tokens::Bounds(TokenBounds::RightParen))?;
