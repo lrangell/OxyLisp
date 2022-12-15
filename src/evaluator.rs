@@ -18,17 +18,11 @@ pub fn eval_form(form: &Form, env: &mut Env) -> Result<Literal> {
             }
         }
 
-        Form::CallExpression((defstring, forms)) if defstring == "def" => {
-            debug!("Evaluating def expresssion: form: {:?}", forms);
-            if let RuntimeObject::Function(def_fn) = env.vars.get("def").unwrap().clone() {
-                let (sym, arg) = forms.split_first().unwrap();
-                let arg_value = eval_form(arg.first().unwrap(), env)?;
-                let result = def_fn([sym.clone(), arg_value.into()].as_slice(), env)?;
-                Ok(result.into())
-                // todo!()
-            } else {
-                Err(anyhow!("aa"))
-            }
+        Form::CallExpression((s, forms)) if s == "def" => handle_def(forms, env),
+        Form::CallExpression((s, forms)) if s == "defn" => handle_defn(forms, env),
+        Form::List(forms) => {
+            let literals: Result<Vec<Literal>> = forms.iter().map(|f| eval_form(f, env)).collect();
+            Ok(Literal::List(literals?))
         }
 
         Form::CallExpression((to_call, forms)) => {
@@ -46,6 +40,17 @@ pub fn eval_form(form: &Form, env: &mut Env) -> Result<Literal> {
             }
         }
     }
+}
+
+fn handle_def(forms: &Vec<Form>, env: &mut Env) -> Result<Literal> {
+    debug!("Evaluating def expresssion: forms: {:?}", forms);
+    let (symbol, arg) = forms.split_first().unwrap();
+    let value = eval_form(arg.first().unwrap(), env).unwrap();
+    env.def(symbol, &value.into())?;
+    Ok(Literal::Bool(true))
+}
+fn handle_defn(forms: &Vec<Form>, env: &mut Env) -> Result<Literal> {
+    todo!()
 }
 
 pub fn eval(forms: Vec<Form>, env: &mut Env) -> Result<Vec<Literal>> {

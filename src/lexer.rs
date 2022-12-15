@@ -9,11 +9,15 @@ pub fn tokenize(expression: &str) -> Vec<Tokens> {
     let tokens = expression
         .replace("(", " ( ")
         .replace(")", " ) ")
+        .replace("[", " [ ")
+        .replace("]", " ] ")
         .split_whitespace()
         .map(|t| -> Tokens {
             match t {
                 "(" => Tokens::Bounds(TokenBounds::LeftParen),
                 ")" => Tokens::Bounds(TokenBounds::RightParen),
+                "[" => Tokens::Bounds(TokenBounds::LeftBracket),
+                "]" => Tokens::Bounds(TokenBounds::RightBracket),
                 "true" => Tokens::Literal(Literal::Bool(true)),
                 "false" => Tokens::Literal(Literal::Bool(false)),
                 i if is_symbol.is_match(i) => Tokens::Symbol(i.to_string()),

@@ -3,8 +3,7 @@ use crate::types::*;
 impl fmt::Display for Tokens {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Bounds(TokenBounds::LeftParen) => write!(f, "("),
-            Self::Bounds(TokenBounds::RightParen) => write!(f, ")"),
+            Self::Bounds(b) => write!(f, "{}", b),
             Self::Literal(p) => write!(f, "{}", p),
             Self::Symbol(p) => write!(f, "{}", p),
         }
@@ -15,6 +14,8 @@ impl fmt::Display for TokenBounds {
         match self {
             Self::LeftParen => write!(f, "("),
             Self::RightParen => write!(f, ")"),
+            Self::LeftBracket => write!(f, "["),
+            Self::RightBracket => write!(f, "]"),
         }
     }
 }
@@ -28,6 +29,10 @@ impl fmt::Display for Form {
                 let forms_string: Vec<String> = forms.iter().map(|f| f.to_string()).collect();
                 write!(f, "({} {})", to_call, forms_string.join(" "))
             }
+            Form::List(forms) => {
+                let forms_string: Vec<String> = forms.iter().map(|f| f.to_string()).collect();
+                write!(f, "[{}]", forms_string.join(", "))
+            }
         }
     }
 }
@@ -38,6 +43,18 @@ impl fmt::Display for Literal {
             Literal::String(s) => write!(f, "{s}"),
             Literal::Integer(s) => write!(f, "{s}"),
             Literal::Bool(s) => write!(f, "{s}"),
+            Literal::List(s) => {
+                let literal_strings: Vec<String> = s.iter().map(|p| p.to_string()).collect();
+                write!(f, "[{}]", literal_strings.join(", "))
+            }
+        }
+    }
+}
+impl fmt::Display for RuntimeObject {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RuntimeObject::Primitive(p) => write!(f, "{}", p),
+            RuntimeObject::Function(f) => todo!(),
         }
     }
 }
