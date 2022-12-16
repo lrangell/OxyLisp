@@ -3,17 +3,6 @@
 version = 3
 
 [[package]]
-name = "OxyLisp"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "env_logger",
- "log",
- "reedline",
- "regex",
-]
-
-[[package]]
 name = "aho-corasick"
 version = "0.7.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -407,6 +396,17 @@ name = "overload"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
+
+[[package]]
+name = "oxy_lisp"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "env_logger",
+ "log",
+ "reedline",
+ "regex",
+]
 
 [[package]]
 name = "parking_lot"

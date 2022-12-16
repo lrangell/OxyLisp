@@ -1,5 +1,5 @@
 [package]
-name = "OxyLisp"
+name = "oxy_lisp"
 version = "0.1.0"
 edition = "2021"
 
