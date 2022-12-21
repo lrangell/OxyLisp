@@ -24,6 +24,7 @@ tracing-subscriber = {version = "0.3", default-features = false, features = ["en
 
 [profile.release]
 opt-level = 3
+debug = true
 [[bench]]
 name = "evaluator"
 harness = false
