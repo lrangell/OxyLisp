@@ -117,51 +117,6 @@ pub struct Env {
     pub parent: EnvType,
 }
 
-impl Env {
-    pub fn def(&mut self, symbol: &Form, value: &RuntimeObject) -> Result<RuntimeObject> {
-        let Form::Symbol(sym) = symbol else {
-            return Err(anyhow!("First argument of def must be a symbol"))
-        };
-        // debug!("def sym: {} val: {}", sym, value);
-        self.vars.insert(sym.clone(), value.clone());
-        Ok(RuntimeObject::Primitive(Literal::Bool(true)))
-    }
-    pub fn defn(
-        self: &mut Box<Self>,
-        symbol: &Form,
-        arguments: Vec<String>,
-        forms: Vec<Form>,
-    ) -> Result<RuntimeObject> {
-        let Form::Symbol(sym) = symbol else {
-            return Err(anyhow!("First argument of defn must be a symbol"))
-        };
-        let function = Lambda::new(Some(symbol.to_string()), arguments, forms, self.to_owned());
-        self.vars
-            .insert(sym.to_string(), RuntimeObject::RuntimeFunction(function));
-
-        debug!("Function {sym} defined");
-        Ok(Literal::Nil.into())
-    }
-
-    pub fn lookup(&self, symbol: &str) -> Option<RuntimeObject> {
-        debug!("Lookup: {symbol} ");
-        if let Some(value) = self.vars.get(symbol) {
-            debug!("found: {symbol} ");
-            return Some(value.clone());
-        }
-        match &self.parent {
-            EnvType::RootEnv => {
-                debug!("root lookup end");
-                None
-            }
-            EnvType::LambdaEnv(parent) => {
-                debug!("lookup parent");
-                parent.lookup(symbol)
-            }
-        }
-    }
-}
-
 impl From<Literal> for Form {
     fn from(p: Literal) -> Self {
         Form::Literal(p)
