@@ -14,3 +14,16 @@ anyhow = "1.0"
 log = "0.4"
 env_logger = "0.9.0"
 reedline = {git = "https://github.com/nushell/reedline"}
+[dev-dependencies]
+criterion = "0.4"
+test-env-log = "0.2.8"
+serial_test = "*"
+env_logger = "0.9.0"
+# tracing = {version = "0.1", default-features = false}
+tracing-subscriber = {version = "0.3", default-features = false, features = ["env-filter", "fmt"]}
+
+[profile.release]
+opt-level = 3
+[[bench]]
+name = "evaluator"
+harness = false

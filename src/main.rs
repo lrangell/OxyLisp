@@ -1,6 +1,5 @@
 #![feature(iter_advance_by)]
 
-#[macro_use]
 extern crate log;
 
 mod env;
