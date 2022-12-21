@@ -97,7 +97,7 @@ impl Primitive for &[RuntimeObject] {
         let a: Vec<i32> = self
             .iter()
             .map(|rto| match rto {
-                RuntimeObject::Primitive(Literal::Integer(i)) => Ok(*i),
+                RuntimeObject::Primitive(Literal::Integer(i)) => Ok(i.clone()),
                 _ => Err(anyhow!("44 ")),
             })
             .collect::<Result<Vec<i32>>>()?;

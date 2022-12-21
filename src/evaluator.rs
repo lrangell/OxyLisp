@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{borrow::Borrow, collections::HashMap};
 
 use crate::lexer::tokenize;
 use crate::parser::parse;
@@ -9,7 +9,7 @@ use log::{debug, info};
 pub fn eval_form(form: &Form, env: &mut Box<Env>) -> Result<RuntimeObject> {
     debug!("Form: {form}");
     match form {
-        Form::Literal(p) => Ok(p.clone().into()),
+        Form::Literal(p) => Ok(p.to_owned().into()),
         Form::Symbol(symbol) => {
             // info!("Env: {:?}, symbol: {symbol}", env.vars.keys());
             env.lookup(symbol)
@@ -105,22 +105,20 @@ impl Lambda {
             }),
         }
     }
-    pub fn bind_symbols(self: &mut Self, values: &Vec<RuntimeObject>) -> () {
+    pub fn bind_symbols(self: &mut Self, values: Vec<RuntimeObject>) -> () {
         //TODO: check for arity
-        self.args.iter().zip(values).for_each(|(k, v)| {
-            self.env.vars.insert(k.to_string(), v.clone());
-        });
+        self.env.vars.extend(self.args.iter().cloned().zip(values));
         self.env.vars.insert(
             self.name.to_owned().unwrap(),
-            RuntimeObject::RuntimeFunction(self.clone()),
+            RuntimeObject::RuntimeFunction(self.to_owned()),
         );
     }
     pub fn eval(self: &mut Self, args: Vec<RuntimeObject>) -> Result<RuntimeObject> {
-        self.bind_symbols(&args);
+        self.bind_symbols(args);
         let result = eval_forms_vec(&self.body, &mut self.env)?
             .last()
             .unwrap_or(&Literal::Nil.into())
-            .clone();
+            .to_owned();
         Ok(result)
     }
 }
