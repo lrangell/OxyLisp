@@ -43,10 +43,12 @@ impl fmt::Display for Literal {
             Literal::String(s) => write!(f, "{s}"),
             Literal::Integer(s) => write!(f, "{s}"),
             Literal::Bool(s) => write!(f, "{s}"),
+            Literal::Nil => write!(f, "Nil"),
             Literal::List(s) => {
                 let literal_strings: Vec<String> = s.iter().map(|p| p.to_string()).collect();
                 write!(f, "[{}]", literal_strings.join(" "))
             }
+            Literal::Symbol(s) => write!(f, "{s}"),
         }
     }
 }
@@ -55,6 +57,20 @@ impl fmt::Display for RuntimeObject {
         match self {
             RuntimeObject::Primitive(p) => write!(f, "{}", p),
             RuntimeObject::Function(f) => todo!(),
+            RuntimeObject::RuntimeFunction(_) => todo!(),
+            RuntimeObject::List(_) => todo!(),
         }
+    }
+}
+
+impl fmt::Display for Env {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let items: Vec<&str> = self
+            .vars
+            .clone()
+            .into_iter()
+            .map(|(sym, val)| "{sym}: {val}")
+            .collect();
+        write!(f, "{}", items.join("\n"))
     }
 }

@@ -11,6 +11,8 @@ fn criterion_benchmark(c: &mut Criterion) {
     .unwrap();
 
     c.bench_function("fib 15", |b| b.iter(|| eval_from_str("(fib 15)", &mut env)));
+    c.bench_function("fib 17", |b| b.iter(|| eval_from_str("(fib 17)", &mut env)));
+    c.bench_function("fib 20", |b| b.iter(|| eval_from_str("(fib 20)", &mut env)));
 }
 
 criterion_group!(benches, criterion_benchmark);

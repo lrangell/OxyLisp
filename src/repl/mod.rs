@@ -1,6 +1,6 @@
 use crate::env::init_env;
 use crate::evaluator::eval_from_str;
-use reedline::{DefaultPrompt, FileBackedHistory, Prompt, Reedline, Signal};
+use reedline::{DefaultPrompt, FileBackedHistory, Reedline, Signal};
 
 pub fn init() {
     let mut env = init_env();

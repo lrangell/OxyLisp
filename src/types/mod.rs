@@ -22,13 +22,15 @@ pub enum Tokens {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
+    Nil,
+    Symbol(String),
     String(String),
     Integer(i32),
     Bool(bool),
     List(Vec<Literal>),
 }
 
-pub type BuiltinFn = fn(&[Form], &mut Env) -> Result<Form>;
+pub type BuiltinFn = fn(&[RuntimeObject], &mut Env) -> Result<RuntimeObject>;
 
 #[derive(Debug, Clone)]
 pub enum Form {
@@ -49,14 +51,58 @@ pub struct Lambda {
     pub name: Option<String>,
     pub args: Vec<String>,
     pub body: Vec<Form>,
-    pub env: Env,
+    pub env: Box<Env>,
 }
 
 #[derive(Clone)]
 pub enum RuntimeObject {
     Primitive(Literal),
+    List(Vec<RuntimeObject>),
     Function(BuiltinFn),
     RuntimeFunction(Lambda),
+}
+
+impl RuntimeObject {
+    pub fn extract_primitive(&self) -> Result<Literal> {
+        match self {
+            RuntimeObject::Primitive(p) => Ok(p.clone()),
+            _ => Err(anyhow!("Error extracting primitive")),
+        }
+    }
+    pub fn extract_number(&self) -> Result<i32> {
+        match self {
+            RuntimeObject::Primitive(Literal::Integer(i)) => Ok(*i),
+            _ => Err(anyhow!("Error extracting primitive")),
+        }
+    }
+    pub fn extract_bool(&self) -> Result<bool> {
+        match self {
+            RuntimeObject::Primitive(Literal::Bool(b)) => Ok(*b),
+            _ => Err(anyhow!("Error extracting primitive")),
+        }
+    }
+}
+
+pub trait Primitive {
+    fn extract(&self);
+    fn extract_numbers(&self) -> Result<Vec<i32>>;
+}
+
+impl Primitive for &[RuntimeObject] {
+    fn extract(&self) {
+        todo!()
+    }
+
+    fn extract_numbers(&self) -> Result<Vec<i32>> {
+        let a: Vec<i32> = self
+            .iter()
+            .map(|rto| match rto {
+                RuntimeObject::Primitive(Literal::Integer(i)) => Ok(*i),
+                _ => Err(anyhow!("44 ")),
+            })
+            .collect::<Result<Vec<i32>>>()?;
+        Ok(a)
+    }
 }
 
 #[derive(Clone)]
@@ -95,10 +141,8 @@ impl Env {
             forms,
             &self,
         );
-        self.vars.insert(
-            sym.to_string(),
-            RuntimeObject::RuntimeFunction(function).clone(),
-        );
+        self.vars
+            .insert(sym.to_string(), RuntimeObject::RuntimeFunction(function));
         Ok(RuntimeObject::Primitive(Literal::Bool(true)))
     }
 
