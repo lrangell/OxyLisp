@@ -2,7 +2,7 @@ use crate::prelude::*;
 use anyhow::*;
 use std::collections::hash_map;
 
-pub fn aritimetic() -> [(String, RuntimeObject); 2] {
+pub fn aritimetic() -> [(String, RuntimeObject); 3] {
     let add: BuiltinFn = |nums: &[Form], _| -> Result<Form> {
         nums.iter()
             .filter_map(|s| match s {
@@ -23,9 +23,18 @@ pub fn aritimetic() -> [(String, RuntimeObject); 2] {
             .map(|v| v.into())
             .context("All arguments must be integers")
     };
+    let less: BuiltinFn = |nums: &[Form], _| -> Result<Form> {
+        match nums {
+            [Form::Literal(Literal::Integer(left)), Form::Literal(Literal::Integer(right))] => {
+                Ok(Form::Literal(Literal::Bool(left < right)))
+            }
+            _ => Err(anyhow!("Arguments must be numbers")),
+        }
+    };
     return [
         ("+".to_string(), RuntimeObject::Function(add)),
         ("*".to_string(), RuntimeObject::Function(mult)),
+        ("<".to_string(), RuntimeObject::Function(less)),
     ];
 }
 
@@ -43,7 +52,7 @@ pub fn defs() -> [(String, RuntimeObject); 1] {
     [("def".to_string(), RuntimeObject::Function(def))]
 }
 
-pub fn init_env() -> Env {
+pub fn init_env() -> Box<Env> {
     // let funs = [&defs()[..], &aritimetic()[..]].concat().to_owned();
     let funs: Vec<(String, RuntimeObject)> =
         defs().iter().chain(aritimetic().iter()).cloned().collect();
@@ -52,5 +61,8 @@ pub fn init_env() -> Env {
         vars.insert(k, v);
     }
 
-    Env { vars }
+    Box::new(Env {
+        vars,
+        parent: EnvType::RootEnv,
+    })
 }
