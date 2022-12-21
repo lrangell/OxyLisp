@@ -3,7 +3,7 @@
 pub mod display;
 use anyhow::{anyhow, Result};
 use log::debug;
-use std::{collections::HashMap, fmt};
+use std::{borrow::Borrow, collections::HashMap, fmt};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum TokenBounds {
@@ -122,7 +122,7 @@ impl Env {
         let Form::Symbol(sym) = symbol else {
             return Err(anyhow!("First argument of def must be a symbol"))
         };
-        debug!("def sym: {} val: {}", sym, value);
+        // debug!("def sym: {} val: {}", sym, value);
         self.vars.insert(sym.clone(), value.clone());
         Ok(RuntimeObject::Primitive(Literal::Bool(true)))
     }
@@ -135,25 +135,29 @@ impl Env {
         let Form::Symbol(sym) = symbol else {
             return Err(anyhow!("First argument of defn must be a symbol"))
         };
-        let function = Lambda::new(
-            Some(symbol.to_string()),
-            arguments.iter().map(|a| a.to_string()).collect(),
-            forms,
-            &self,
-        );
+        let function = Lambda::new(Some(symbol.to_string()), arguments, forms, self.to_owned());
         self.vars
             .insert(sym.to_string(), RuntimeObject::RuntimeFunction(function));
-        Ok(RuntimeObject::Primitive(Literal::Bool(true)))
+
+        debug!("Function {sym} defined");
+        Ok(Literal::Nil.into())
     }
 
     pub fn lookup(&self, symbol: &str) -> Option<RuntimeObject> {
-        debug!("Env: {self}");
+        debug!("Lookup: {symbol} ");
         if let Some(value) = self.vars.get(symbol) {
+            debug!("found: {symbol} ");
             return Some(value.clone());
         }
         match &self.parent {
-            EnvType::RootEnv => None,
-            EnvType::LambdaEnv(parent) => parent.lookup(symbol),
+            EnvType::RootEnv => {
+                debug!("root lookup end");
+                None
+            }
+            EnvType::LambdaEnv(parent) => {
+                debug!("lookup parent");
+                parent.lookup(symbol)
+            }
         }
     }
 }

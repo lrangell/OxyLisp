@@ -11,14 +11,9 @@ pub fn eval_form(form: &Form, env: &mut Box<Env>) -> Result<RuntimeObject> {
     match form {
         Form::Literal(p) => Ok(p.clone().into()),
         Form::Symbol(symbol) => {
-            info!("Env: {:?}, symbol: {symbol}", env.vars.keys());
-            let obj = env
-                .lookup(symbol)
-                .ok_or(anyhow!("{symbol} is not defined "))?;
-            match obj {
-                RuntimeObject::Primitive(p) => Ok(p.clone().into()),
-                _ => Err(anyhow!("Runtime object can't be evaluated")),
-            }
+            // info!("Env: {:?}, symbol: {symbol}", env.vars.keys());
+            env.lookup(symbol)
+                .ok_or(anyhow!("{symbol} is not defined "))
         }
 
         Form::CallExpression((s, forms)) if s == "def" => handle_def(forms, env),
@@ -66,7 +61,6 @@ pub fn eval_forms_vec(forms: &Vec<Form>, env: &mut Box<Env>) -> Result<Vec<Runti
 }
 
 fn handle_def(forms: &Vec<Form>, env: &mut Box<Env>) -> Result<RuntimeObject> {
-    debug!("Evaluating def expresssion: forms: {:?}", forms);
     let (symbol, arg) = forms.split_first().unwrap();
     let value = eval_form(arg.first().unwrap(), env).unwrap();
     env.def(symbol, &value.into())?;
@@ -100,19 +94,14 @@ pub fn eval_from_str(code: &str, env: &mut Box<Env>) -> Result<Vec<RuntimeObject
 }
 
 impl Lambda {
-    pub fn new(
-        name: Option<String>,
-        args: Vec<String>,
-        body: Vec<Form>,
-        parent: &Box<Env>,
-    ) -> Self {
+    pub fn new(name: Option<String>, args: Vec<String>, body: Vec<Form>, parent: Box<Env>) -> Self {
         Lambda {
             name,
             args,
             body,
             env: Box::new(Env {
                 vars: HashMap::new(),
-                parent: EnvType::LambdaEnv(parent.clone()),
+                parent: EnvType::LambdaEnv(parent),
             }),
         }
     }
@@ -121,13 +110,13 @@ impl Lambda {
         self.args.iter().zip(values).for_each(|(k, v)| {
             self.env.vars.insert(k.to_string(), v.clone());
         });
-    }
-    pub fn eval(self: &mut Self, args: Vec<RuntimeObject>) -> Result<RuntimeObject> {
-        self.bind_symbols(&args);
         self.env.vars.insert(
             self.name.to_owned().unwrap(),
             RuntimeObject::RuntimeFunction(self.clone()),
         );
+    }
+    pub fn eval(self: &mut Self, args: Vec<RuntimeObject>) -> Result<RuntimeObject> {
+        self.bind_symbols(&args);
         let result = eval_forms_vec(&self.body, &mut self.env)?
             .last()
             .unwrap_or(&Literal::Nil.into())

@@ -56,20 +56,23 @@ impl fmt::Display for RuntimeObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             RuntimeObject::Primitive(p) => write!(f, "{}", p),
-            RuntimeObject::Function(f) => todo!(),
-            RuntimeObject::RuntimeFunction(_) => todo!(),
-            RuntimeObject::List(_) => todo!(),
+            RuntimeObject::Function(p) => write!(f, "#function#",),
+            RuntimeObject::RuntimeFunction(p) => write!(f, "#function#",),
+            RuntimeObject::List(s) => {
+                let literal_strings: Vec<String> = s.iter().map(|p| p.to_string()).collect();
+                write!(f, "[{}]", literal_strings.join(" "))
+            }
         }
     }
 }
 
 impl fmt::Display for Env {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let items: Vec<&str> = self
+        let items: Vec<String> = self
             .vars
             .clone()
             .into_iter()
-            .map(|(sym, val)| "{sym}: {val}")
+            .map(|(sym, val)| format!("{} {}", sym, val))
             .collect();
         write!(f, "{}", items.join("\n"))
     }
