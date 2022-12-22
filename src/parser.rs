@@ -1,5 +1,6 @@
 use crate::types::*;
 use anyhow::{anyhow, Result};
+use log::debug;
 use std::vec::Vec;
 
 pub fn parse(tokens: &[Tokens]) -> Result<Vec<Form>> {
@@ -10,8 +11,7 @@ pub fn parse(tokens: &[Tokens]) -> Result<Vec<Form>> {
     let (head, tail) = tokens
         .split_first()
         .ok_or(anyhow!("\nEmpty token vector\n"))?;
-
-    debug!("head: {:?} tail: {:?}", head, tail);
+    // debug!("\nhead: {:?}\ntail: {:?}", head, tail);
 
     match &head {
         Tokens::Bounds(TokenBounds::LeftParen) => {
@@ -19,51 +19,68 @@ pub fn parse(tokens: &[Tokens]) -> Result<Vec<Form>> {
                 .split_first()
                 .ok_or(anyhow!("Unexpected empty parens"))?
             {
-                let (args_tokens, rest) =
-                    split_at_bound(right_tokens, Tokens::Bounds(TokenBounds::RightParen))?;
-                let args = parse(args_tokens)?;
-                let remaining_forms = parse(rest)?;
-                let mut call_expr = vec![Form::CallExpression((sym.clone(), args))];
-                call_expr.extend(remaining_forms);
-                return Ok(call_expr);
+                let (inner, rest) =
+                    split_at_bound(right_tokens, OpenBoundsTracker::paren_tracker())?;
+                let call_expr = Form::CallExpression((sym.clone(), parse(inner)?));
+                return parse_remaing(call_expr, rest);
             } else {
                 return Err(anyhow!("First element of a form must be a symbol"));
             }
         }
         Tokens::Bounds(TokenBounds::LeftBracket) => {
-            let (inner, rest) = split_at_bound(tail, Tokens::Bounds(TokenBounds::RightBracket))?;
-            let inner_forms = parse(inner)?;
-            let rest_forms = parse(rest)?;
-            let mut list_form = vec![Form::List(Box::new(inner_forms))];
-            list_form.extend(rest_forms);
-            Ok(list_form)
+            let (inner, rest) = split_at_bound(tail, OpenBoundsTracker::bracket_tracker())?;
+            let list = Form::List(Box::new(parse(inner)?));
+            parse_remaing(list, rest)
         }
-        Tokens::Literal(l) => {
-            let uu = parse(tail)?;
-            let mut r = [Form::Literal(l.to_owned())].to_vec();
-            r.extend(uu);
-            Ok(r)
-        }
+        Tokens::Literal(l) => parse_remaing(l.to_owned().into(), tail),
         Tokens::Bounds(TokenBounds::RightParen) => parse(tail),
         Tokens::Bounds(TokenBounds::RightBracket) => parse(tail),
-        Tokens::Symbol(s) => {
-            let remaining_forms = parse(tail)?;
-            let mut symbol_form = [Form::Symbol(s.to_owned())].to_vec();
-            symbol_form.extend(remaining_forms);
-            Ok(symbol_form)
-        } // &s => Ok(vec![s.into()]),
+        Tokens::Symbol(s) => parse_remaing(Form::Symbol(s.to_owned()), tail),
     }
 }
 
-fn split_at_bound(tokens: &[Tokens], closing_bound: Tokens) -> Result<(&[Tokens], &[Tokens])> {
-    let n = tokens
+fn parse_remaing(form: Form, rest: &[Tokens]) -> Result<Vec<Form>> {
+    Ok(vec![form].into_iter().chain(parse(rest)?).collect())
+}
+
+fn split_at_bound(
+    tokens: &[Tokens],
+    mut tracker: OpenBoundsTracker,
+) -> Result<(&[Tokens], &[Tokens])> {
+    let split_index = tokens
         .iter()
-        .rposition(|t| *t == closing_bound)
-        .ok_or(anyhow!(
-            "\n\nUnable to find closing delimiter: {}\nIn the tokens: {:?}\n\n",
-            closing_bound,
-            tokens
-        ))?;
-    let (inner, rest) = tokens.split_at(n);
-    Ok((inner, rest))
+        .position(|t| tracker.track(t))
+        .ok_or(anyhow!("Uneven number of bound tokens"))?;
+    Ok(tokens.split_at(split_index))
+}
+
+struct OpenBoundsTracker {
+    opener: TokenBounds,
+    closer: TokenBounds,
+    count: i32,
+}
+impl OpenBoundsTracker {
+    fn track(&mut self, bound: &Tokens) -> bool {
+        self.count += match bound {
+            Tokens::Bounds(b) if *b == self.opener => 1,
+            Tokens::Bounds(b) if *b == self.closer => -1,
+            _ => 0,
+        };
+        self.count == 0
+    }
+
+    fn paren_tracker() -> Self {
+        OpenBoundsTracker {
+            opener: TokenBounds::LeftParen,
+            closer: TokenBounds::RightParen,
+            count: 1,
+        }
+    }
+    fn bracket_tracker() -> Self {
+        OpenBoundsTracker {
+            opener: TokenBounds::LeftBracket,
+            closer: TokenBounds::RightBracket,
+            count: 1,
+        }
+    }
 }
