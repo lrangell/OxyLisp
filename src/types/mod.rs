@@ -63,21 +63,27 @@ pub enum RuntimeObject {
 }
 
 impl RuntimeObject {
-    pub fn extract_primitive(&self) -> Result<Literal> {
+    pub fn extract_primitive(self) -> Result<Literal> {
         match self {
-            RuntimeObject::Primitive(p) => Ok(p.clone()),
+            RuntimeObject::Primitive(p) => Ok(p),
             _ => Err(anyhow!("Error extracting primitive")),
         }
     }
-    pub fn extract_number(&self) -> Result<i32> {
+    pub fn extract_number(self) -> Result<i32> {
         match self {
-            RuntimeObject::Primitive(Literal::Integer(i)) => Ok(*i),
+            RuntimeObject::Primitive(Literal::Integer(i)) => Ok(i),
             _ => Err(anyhow!("Error extracting primitive")),
         }
     }
-    pub fn extract_bool(&self) -> Result<bool> {
+    pub fn extract_bool(self) -> Result<bool> {
         match self {
-            RuntimeObject::Primitive(Literal::Bool(b)) => Ok(*b),
+            RuntimeObject::Primitive(Literal::Bool(b)) => Ok(b),
+            _ => Err(anyhow!("Error extracting primitive")),
+        }
+    }
+    pub fn extract_list(self) -> Result<Vec<RuntimeObject>> {
+        match self {
+            RuntimeObject::List(rt_vec) => Ok(rt_vec),
             _ => Err(anyhow!("Error extracting primitive")),
         }
     }

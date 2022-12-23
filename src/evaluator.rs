@@ -29,6 +29,10 @@ pub fn eval_form(form: &Form, env: &mut Box<Env>) -> Result<RuntimeObject> {
                 == eval_form(&forms[1], env)?.extract_primitive()?,
         )
         .into()),
+        Form::CallExpression((s, forms)) if s == "get" => get(forms, env),
+        Form::CallExpression((s, forms)) if s == "push" => push(forms, env),
+        Form::CallExpression((s, forms)) if s == "map" => map(forms, env),
+
         Form::List(forms) => {
             let literals: Result<Vec<RuntimeObject>> =
                 forms.iter().map(|f| eval_form(f, env)).collect();
@@ -56,6 +60,19 @@ pub fn eval_form(form: &Form, env: &mut Box<Env>) -> Result<RuntimeObject> {
     }
 }
 
+fn map(forms: &Vec<Form>, env: &mut Box<Env>) -> Result<RuntimeObject, Error> {
+    let rtos = eval_forms_vec(forms, env)?;
+    let list = rtos[1].clone().extract_list()?;
+    if let RuntimeObject::RuntimeFunction(mut f) = rtos[0].to_owned() {
+        let mapped: Vec<RuntimeObject> = list
+            .iter()
+            .map(|el| f.eval(vec![el.clone()]))
+            .collect::<Result<Vec<RuntimeObject>>>()?;
+        return Ok(RuntimeObject::List(mapped));
+    }
+    Err(anyhow!("map error"))
+}
+
 pub fn eval_forms_vec(forms: &Vec<Form>, env: &mut Box<Env>) -> Result<Vec<RuntimeObject>> {
     forms.iter().map(|a| eval_form(a, env)).collect()
 }
@@ -80,6 +97,22 @@ fn handle_defn(forms: &Vec<Form>, env: &mut Box<Env>) -> Result<RuntimeObject> {
         })
         .collect();
     env.defn(symbol, arguments, forms.to_vec())?;
+    Ok(Literal::Nil.into())
+}
+
+fn get(forms: &Vec<Form>, env: &mut Box<Env>) -> Result<RuntimeObject> {
+    let rtos = eval_forms_vec(forms, env)?;
+    let index = rtos[0].clone().extract_primitive()?;
+    let list = rtos[1].clone().extract_list()?;
+    match index {
+        Literal::Integer(i) if i < list.len() as i32 => Ok(list[i as usize].clone()),
+        _ => Err(anyhow!("error")),
+    }
+}
+fn push(forms: &Vec<Form>, env: &mut Box<Env>) -> Result<RuntimeObject> {
+    let rtos = eval_forms_vec(forms, env)?;
+    let mut list = rtos[1].clone().extract_list()?;
+    list.push(rtos[0].clone());
     Ok(Literal::Nil.into())
 }
 
@@ -120,6 +153,9 @@ impl Lambda {
             .unwrap_or(&Literal::Nil.into())
             .to_owned();
         Ok(result)
+    }
+    pub fn tail_eval(self: &mut Self, args: Vec<RuntimeObject>) -> Result<RuntimeObject> {
+        todo!()
     }
 }
 
