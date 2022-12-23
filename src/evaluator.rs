@@ -147,8 +147,20 @@ impl Lambda {
         );
     }
     pub fn eval(self: &mut Self, args: Vec<RuntimeObject>) -> Result<RuntimeObject> {
+        let remaing_args = self.args.len() - args.len();
+        if remaing_args > 1 {
+            let mut partial_fn = self.clone();
+            partial_fn.bind_symbols(args);
+            partial_fn.args = self
+                .args
+                .clone()
+                .into_iter()
+                .skip(self.args.len() - remaing_args)
+                .collect();
+            return Ok(RuntimeObject::RuntimeFunction(partial_fn));
+        };
         self.bind_symbols(args);
-        let result = eval_forms_vec(&self.body, &mut self.env)?
+        let result = eval_forms_vec(&self.body.clone(), &mut self.env)?
             .last()
             .unwrap_or(&Literal::Nil.into())
             .to_owned();
