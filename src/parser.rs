@@ -1,46 +1,54 @@
-use crate::types::*;
+use crate::{lexer::tokenize, prelude::*};
 use anyhow::{anyhow, Result};
 use log::debug;
-use std::vec::Vec;
+use std::{borrow::BorrowMut, vec::Vec};
+use trees::{tr, Node, Tree};
 
-pub fn parse(tokens: &[Tokens]) -> Result<Vec<Form>> {
+pub fn parse(tokens: &[Tokens], ast: &mut Node<Form>) -> Result<()> {
     if tokens.is_empty() {
-        let r: Vec<Form> = [].to_vec();
-        return Ok(r);
+        return Ok(());
     }
     let (head, tail) = tokens
         .split_first()
         .ok_or(anyhow!("\nEmpty token vector\n"))?;
-    // debug!("\nhead: {:?}\ntail: {:?}", head, tail);
 
-    match &head {
+    match head {
         Tokens::Bounds(TokenBounds::LeftParen) => {
-            if let (Tokens::Symbol(sym), right_tokens) = tail
+            let (Tokens::Symbol(sym), right_tokens) = tail
                 .split_first()
-                .ok_or(anyhow!("Unexpected empty parens"))?
-            {
-                let (inner, rest) =
-                    split_at_bound(right_tokens, OpenBoundsTracker::paren_tracker())?;
-                let call_expr = Form::CallExpression((sym.clone(), parse(inner)?));
-                return parse_remaing(call_expr, rest);
-            } else {
-                return Err(anyhow!("First element of a form must be a symbol"));
-            }
+                .ok_or(anyhow!("Unexpected empty parens"))? else {return Err(anyhow!(" "))};
+            let (inner, rest) = split_at_bound(right_tokens, OpenBoundsTracker::paren_tracker())?;
+
+            let mut args = Tree::new(Form::CallExpression(sym.clone()));
+
+            parse(inner, &mut args.root_mut())?;
+            ast.push_back(args);
+
+            let mut dummy = Tree::new(Form::Root);
+            parse(rest, &mut dummy.root_mut())?;
+            ast.append(dummy.abandon());
         }
         Tokens::Bounds(TokenBounds::LeftBracket) => {
             let (inner, rest) = split_at_bound(tail, OpenBoundsTracker::bracket_tracker())?;
-            let list = Form::List(Box::new(parse(inner)?));
-            parse_remaing(list, rest)
-        }
-        Tokens::Literal(l) => parse_remaing(l.to_owned().into(), tail),
-        Tokens::Bounds(TokenBounds::RightParen) => parse(tail),
-        Tokens::Bounds(TokenBounds::RightBracket) => parse(tail),
-        Tokens::Symbol(s) => parse_remaing(Form::Symbol(s.to_owned()), tail),
-    }
-}
 
-fn parse_remaing(form: Form, rest: &[Tokens]) -> Result<Vec<Form>> {
-    Ok(vec![form].into_iter().chain(parse(rest)?).collect())
+            let mut list = Tree::new(Form::List);
+
+            parse(inner, &mut list.root_mut())?;
+            ast.push_back(list);
+
+            let mut dummy = Tree::new(Form::Root);
+            parse(rest, &mut dummy.root_mut())?;
+            ast.append(dummy.abandon());
+        }
+        Tokens::Bounds(_) => parse(tail, ast)?,
+
+        token => {
+            let form: Form = token.clone().into();
+            ast.push_back(Tree::new(form));
+            parse(tail, ast)?;
+        }
+    };
+    Ok(())
 }
 
 fn split_at_bound(
@@ -83,4 +91,11 @@ impl OpenBoundsTracker {
             count: 1,
         }
     }
+}
+
+pub fn parse_string(code: &str) -> Result<Tree<Form>> {
+    let mut tree = Tree::new(Form::Root);
+    let root = tree.root_mut().get_mut();
+    parse(&tokenize(code), root)?;
+    Ok(tree)
 }

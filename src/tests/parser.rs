@@ -1,14 +1,12 @@
 use serial_test::serial;
 
+use crate::types::display::PrintAST;
 use crate::{lexer::tokenize, parser::*};
+use pretty_assertions::{assert_eq, assert_ne};
 
 fn assert_parse_eq(code: &str) {
-    let parsed_code: Vec<String> = parse(&tokenize(code))
-        .unwrap()
-        .iter()
-        .map(|f| f.to_string())
-        .collect();
-    assert_eq!(code, parsed_code.join(" "));
+    let ast = parse_string(code).unwrap();
+    assert_eq!(code, ast.root().print_ast().unwrap());
 }
 #[test]
 #[serial]

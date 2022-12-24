@@ -4,6 +4,7 @@ pub mod display;
 use anyhow::{anyhow, Result};
 use log::debug;
 use std::{borrow::Borrow, collections::HashMap, fmt};
+use trees::{Node, Tree};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum TokenBounds {
@@ -34,10 +35,11 @@ pub type BuiltinFn = fn(&[RuntimeObject], &mut Env) -> Result<RuntimeObject>;
 
 #[derive(Debug, Clone)]
 pub enum Form {
+    Root,
     Literal(Literal),
-    CallExpression(CallExpression),
+    CallExpression(String),
     Symbol(String),
-    List(Box<Vec<Form>>),
+    List,
 }
 
 pub type CallExpression = (String, Vec<Form>);
@@ -140,7 +142,8 @@ impl From<Form> for Literal {
             Form::Literal(l) => l,
             Form::CallExpression(_) => todo!(),
             Form::Symbol(s) => todo!(),
-            Form::List(s) => todo!(),
+            Form::List => todo!(),
+            Form::Root => todo!(),
         }
     }
 }
@@ -153,5 +156,15 @@ impl From<i32> for Literal {
 impl From<i32> for Form {
     fn from(p: i32) -> Self {
         Form::Literal(Literal::Integer(p))
+    }
+}
+
+impl From<Tokens> for Form {
+    fn from(value: Tokens) -> Self {
+        match value {
+            Tokens::Bounds(_) => unreachable!(),
+            Tokens::Literal(l) => Form::Literal(l),
+            Tokens::Symbol(s) => Form::Symbol(s),
+        }
     }
 }

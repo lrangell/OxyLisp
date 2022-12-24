@@ -1,3 +1,7 @@
+use std::fmt::write;
+
+use trees::Tree;
+
 use crate::types::*;
 
 impl fmt::Display for Tokens {
@@ -25,14 +29,17 @@ impl fmt::Display for Form {
         match self {
             Form::Literal(p) => write!(f, "{}", p),
             Form::Symbol(s) => write!(f, "{}", s),
-            Form::CallExpression((to_call, forms)) => {
-                let forms_string: Vec<String> = forms.iter().map(|f| f.to_string()).collect();
-                write!(f, "({} {})", to_call, forms_string.join(" "))
+            Form::CallExpression(s) => {
+                // let forms_string: Vec<String> = forms.iter().map(|f| f.to_string()).collect();
+                // write!(f, "({} {})", to_call, forms_string.join(" "))
+                write!(f, "{}", s)
             }
-            Form::List(forms) => {
-                let forms_string: Vec<String> = forms.iter().map(|f| f.to_string()).collect();
-                write!(f, "[{}]", forms_string.join(" "))
+            Form::List => {
+                // let forms_string: Vec<String> = forms.iter().map(|f| f.to_string()).collect();
+                // write!(f, "[{}]", forms_string.join(" "))
+                write!(f, "[]",)
             }
+            Form::Root => write!(f, "",),
         }
     }
 }
@@ -75,5 +82,50 @@ impl fmt::Display for Env {
             .map(|(sym, val)| format!("{} {}", sym, val))
             .collect();
         write!(f, "{}", items.join("\n"))
+    }
+}
+
+pub trait PrintAST {
+    fn _print_ast(&self, acc: &mut String) -> Result<String>;
+    fn print_ast(&self) -> Result<String>;
+}
+
+use std::fmt::Write;
+impl PrintAST for Node<Form> {
+    fn _print_ast(&self, acc: &mut String) -> Result<String> {
+        match self.data() {
+            Form::Literal(l) => write!(acc, " {l}"),
+            Form::CallExpression(funcion_name) => {
+                write!(acc, " ({funcion_name}");
+                self.iter().for_each(|n| {
+                    n._print_ast(acc);
+                });
+                write!(acc, ")")
+            }
+            Form::Symbol(s) => write!(acc, " {s}"),
+            Form::List => {
+                write!(acc, " [")?;
+                self.iter().for_each(|n| {
+                    n._print_ast(acc);
+                });
+                write!(acc, "] ")
+            }
+            Form::Root => {
+                self.iter().for_each(|n| {
+                    n._print_ast(acc);
+                });
+                write!(acc, "")
+            }
+        }?;
+        Ok(acc
+            .replace("[ ", "[")
+            .replace("] ", "]")
+            .split_whitespace()
+            .collect::<Vec<&str>>()
+            .join(" "))
+    }
+
+    fn print_ast(&self) -> Result<String> {
+        self._print_ast(&mut "".to_string())
     }
 }
