@@ -2,8 +2,8 @@
 #![allow(unused_variables)]
 pub mod display;
 use anyhow::{anyhow, Result};
-use log::debug;
-use std::{borrow::Borrow, collections::HashMap, fmt};
+// use log::debug;
+use std::{collections::HashMap, fmt};
 use trees::{Node, Tree};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
@@ -31,7 +31,7 @@ pub enum Literal {
     List(Vec<Literal>),
 }
 
-pub type BuiltinFn = fn(&[RuntimeObject], &mut Env) -> Result<RuntimeObject>;
+pub type BuiltInFunction = fn(&[RuntimeObject], &mut Box<Env>) -> Result<RuntimeObject>;
 
 #[derive(Debug, Clone)]
 pub enum Form {
@@ -52,15 +52,16 @@ trait Eval {
 pub struct Lambda {
     pub name: Option<String>,
     pub args: Vec<String>,
-    pub body: Vec<Form>,
+    pub body: Tree<Form>,
     pub env: Box<Env>,
 }
 
 #[derive(Clone)]
 pub enum RuntimeObject {
+    NoOp,
     Primitive(Literal),
     List(Vec<RuntimeObject>),
-    Function(BuiltinFn),
+    Function(BuiltInFunction),
     RuntimeFunction(Lambda),
 }
 

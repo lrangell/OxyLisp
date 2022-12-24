@@ -742,6 +742,7 @@ dependencies = [
  "criterion",
  "env_logger",
  "log",
+ "once_cell",
  "pretty_assertions",
  "reedline",
  "regex",

@@ -1,13 +1,14 @@
-use crate::{env::init_env, evaluator::eval_forms_vec, lexer::tokenize, parser::*};
+use crate::prelude::*;
+use oxy_lisp::{env::init_env, evaluator::eval_str};
 use serial_test::serial;
 use test_env_log::test;
 
 fn eval_and_assert_eq(code: &str, val: &str) {
     let mut env = init_env();
-    let forms = parse(&tokenize(code)).unwrap();
-    println!("{:?}", forms);
-    let vals = eval_forms_vec(&forms, &mut env).unwrap();
-    assert_eq!(vals.last().unwrap().to_string(), val);
+    let res = eval_str(code, &mut env).unwrap();
+    // println!("{:?}", forms);
+    // let vals = eval_forms_vec(&forms, &mut env).unwrap();
+    assert_eq!(res.to_string(), val);
 }
 
 #[test]

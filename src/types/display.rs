@@ -1,7 +1,3 @@
-use std::fmt::write;
-
-use trees::Tree;
-
 use crate::types::*;
 
 impl fmt::Display for Tokens {
@@ -30,13 +26,9 @@ impl fmt::Display for Form {
             Form::Literal(p) => write!(f, "{}", p),
             Form::Symbol(s) => write!(f, "{}", s),
             Form::CallExpression(s) => {
-                // let forms_string: Vec<String> = forms.iter().map(|f| f.to_string()).collect();
-                // write!(f, "({} {})", to_call, forms_string.join(" "))
                 write!(f, "{}", s)
             }
             Form::List => {
-                // let forms_string: Vec<String> = forms.iter().map(|f| f.to_string()).collect();
-                // write!(f, "[{}]", forms_string.join(" "))
                 write!(f, "[]",)
             }
             Form::Root => write!(f, "",),
@@ -69,6 +61,7 @@ impl fmt::Display for RuntimeObject {
                 let literal_strings: Vec<String> = s.iter().map(|p| p.to_string()).collect();
                 write!(f, "[{}]", literal_strings.join(" "))
             }
+            RuntimeObject::NoOp => write!(f, "",),
         }
     }
 }
@@ -92,11 +85,12 @@ pub trait PrintAST {
 
 use std::fmt::Write;
 impl PrintAST for Node<Form> {
+    #[allow(unused_must_use)]
     fn _print_ast(&self, acc: &mut String) -> Result<String> {
         match self.data() {
             Form::Literal(l) => write!(acc, " {l}"),
             Form::CallExpression(funcion_name) => {
-                write!(acc, " ({funcion_name}");
+                write!(acc, " ({funcion_name}")?;
                 self.iter().for_each(|n| {
                     n._print_ast(acc);
                 });

@@ -13,5 +13,5 @@ mod tests;
 mod types;
 
 fn main() {
-    repl::init()
+    repl::init();
 }

@@ -1,5 +1,5 @@
 use crate::env::init_env;
-use crate::evaluator::eval_from_str;
+use crate::evaluator::eval_str;
 use reedline::{DefaultPrompt, FileBackedHistory, Reedline, Signal};
 
 pub fn init() {
@@ -19,9 +19,9 @@ pub fn init() {
         let sig = line_editor.read_line(&prompt);
         match sig {
             Ok(Signal::Success(buffer)) => {
-                let res = eval_from_str(&buffer, &mut env);
+                let res = eval_str(&buffer, &mut env);
                 match res {
-                    Ok(primitive) => println!("{}", primitive.first().unwrap()),
+                    Ok(primitive) => println!("{}", primitive),
                     Err(e) => println!("Error: {}", e.to_string()),
                 }
             }

@@ -1,8 +1,6 @@
 use crate::{lexer::tokenize, prelude::*};
 use anyhow::{anyhow, Result};
-use log::debug;
-use std::{borrow::BorrowMut, vec::Vec};
-use trees::{tr, Node, Tree};
+use trees::{Node, Tree};
 
 pub fn parse(tokens: &[Tokens], ast: &mut Node<Form>) -> Result<()> {
     if tokens.is_empty() {
@@ -32,7 +30,6 @@ pub fn parse(tokens: &[Tokens], ast: &mut Node<Form>) -> Result<()> {
             let (inner, rest) = split_at_bound(tail, OpenBoundsTracker::bracket_tracker())?;
 
             let mut list = Tree::new(Form::List);
-
             parse(inner, &mut list.root_mut())?;
             ast.push_back(list);
 
