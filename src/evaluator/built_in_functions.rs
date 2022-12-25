@@ -4,7 +4,7 @@ use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
 fn map(args: &[RuntimeObject], _env: &mut Box<Env>) -> Result<RuntimeObject, Error> {
-    if let (RuntimeObject::RuntimeFunction(f), list) = args.split_first().unwrap() {
+    if let [RuntimeObject::RuntimeFunction(f), RuntimeObject::List(list)] = args {
         return list
             .iter()
             .map(|el| f.to_owned().eval(&[el.to_owned()]))
