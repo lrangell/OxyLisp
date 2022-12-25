@@ -4,7 +4,7 @@ pub mod display;
 use anyhow::{anyhow, Result};
 // use log::debug;
 use std::{collections::HashMap, fmt};
-use trees::{Node, Tree};
+use trees::{Forest, Node, Tree};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum TokenBounds {
@@ -52,7 +52,7 @@ trait Eval {
 pub struct Lambda {
     pub name: Option<String>,
     pub args: Vec<String>,
-    pub body: Tree<Form>,
+    pub body: Forest<Form>,
     pub env: Box<Env>,
 }
 

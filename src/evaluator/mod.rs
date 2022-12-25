@@ -1,10 +1,13 @@
 mod built_in_functions;
 mod lambda;
 
-use crate::{parser::parse_string, prelude::*};
+use crate::{
+    parser::parse_string,
+    prelude::{display::PrintAST, *},
+};
 use anyhow::*;
 // use log::{debug, info};
-use trees::Node;
+use trees::{Forest, Node};
 
 pub fn eval(node: &mut Node<Form>, env: &mut Box<Env>) -> Result<RuntimeObject> {
     match node.data().to_owned() {
@@ -51,9 +54,10 @@ fn build_lambda(
     env: &mut Box<Env>,
     name: Option<String>,
 ) -> Result<RuntimeObject> {
-    let args = node
-        .pop_front()
-        .unwrap()
+    let mut body = node.deep_clone_forest();
+    let args_node = body.pop_front().unwrap();
+    let args = args_node
+        .root()
         .iter()
         .map(|n| match n.data() {
             Form::Symbol(sym) => Ok(sym.to_owned()),
@@ -62,7 +66,7 @@ fn build_lambda(
             )),
         })
         .collect::<Result<Vec<String>>>()?;
-    let body = node.detach();
+
     let f = Lambda::new(name, args, body, env.to_owned());
     Ok(RuntimeObject::RuntimeFunction(f))
 }
@@ -100,6 +104,13 @@ fn eval_list(form: &mut Node<Form>, env: &mut Box<Env>) -> Result<RuntimeObject>
 
 fn eval_children(form: &mut Node<Form>, env: &mut Box<Env>) -> Result<Vec<RuntimeObject>> {
     form.iter_mut()
+        .map(|mut node| eval(&mut node, env))
+        .collect::<Result<Vec<RuntimeObject>>>()
+}
+
+fn eval_forest(forest: &mut Forest<Form>, env: &mut Box<Env>) -> Result<Vec<RuntimeObject>> {
+    forest
+        .iter_mut()
         .map(|mut node| eval(&mut node, env))
         .collect::<Result<Vec<RuntimeObject>>>()
 }

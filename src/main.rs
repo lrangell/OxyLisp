@@ -2,6 +2,9 @@
 
 extern crate log;
 
+#[macro_use()]
+extern crate trees;
+
 mod env;
 mod evaluator;
 mod lexer;
