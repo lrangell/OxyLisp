@@ -5,7 +5,7 @@ use reedline::{DefaultPrompt, FileBackedHistory, Reedline, Signal};
 pub fn init() {
     let mut env = init_env();
     let history = Box::new(
-        FileBackedHistory::with_file(5, "/tmp/oxy_history.txt".into())
+        FileBackedHistory::with_file(50, "/tmp/oxy_history.txt".into())
             .expect("Error configuring history with file"),
     );
 

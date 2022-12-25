@@ -12,6 +12,7 @@ pub fn eval(node: &mut Node<Form>, env: &mut Box<Env>) -> Result<RuntimeObject> 
         Form::CallExpression(symbol) => match symbol.as_str() {
             "def" => def(node, env),
             "defn" => defn(node, env),
+            "fn" => build_lambda(node, env, None),
             "if" => eval_if(node, env),
             _ => eval_call_expr(symbol, node, env),
         },
@@ -38,6 +39,18 @@ fn defn(node: &mut Node<Form>, env: &mut Box<Env>) -> Result<RuntimeObject> {
     let Form::Symbol(symbol) = function_name_node.data() else {
         return Err(anyhow!("First argument of defn must be a symbol"))
     };
+
+    let f = build_lambda(node, env, Some(symbol.to_string()))?;
+
+    env.vars.insert(symbol.to_string(), f);
+    Ok(RuntimeObject::NoOp)
+}
+
+fn build_lambda(
+    node: &mut Node<Form>,
+    env: &mut Box<Env>,
+    name: Option<String>,
+) -> Result<RuntimeObject> {
     let args = node
         .pop_front()
         .unwrap()
@@ -49,12 +62,9 @@ fn defn(node: &mut Node<Form>, env: &mut Box<Env>) -> Result<RuntimeObject> {
             )),
         })
         .collect::<Result<Vec<String>>>()?;
-
     let body = node.detach();
-    let f = Lambda::new(Some(symbol.to_string()), args, body, env.to_owned());
-    env.vars
-        .insert(symbol.to_string(), RuntimeObject::RuntimeFunction(f));
-    Ok(RuntimeObject::NoOp)
+    let f = Lambda::new(name, args, body, env.to_owned());
+    Ok(RuntimeObject::RuntimeFunction(f))
 }
 fn eval_if(node: &mut Node<Form>, env: &mut Box<Env>) -> Result<RuntimeObject> {
     //TODO: check for number of arguments

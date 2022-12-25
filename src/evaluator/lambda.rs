@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use super::eval_children;
 use crate::prelude::*;
 use anyhow::*;
-use trees::Tree;
+use trees::{Node, Tree};
 
 impl Lambda {
     pub fn new(
@@ -27,10 +27,19 @@ impl Lambda {
         self.env
             .vars
             .extend(self.args.iter().cloned().zip(values.to_owned().into_iter()));
-        self.env.vars.insert(
-            self.name.to_owned().unwrap(),
-            RuntimeObject::RuntimeFunction(self.to_owned()),
-        );
+        match &self.name {
+            Some(name) => {
+                self.env.vars.insert(
+                    name.to_string(),
+                    RuntimeObject::RuntimeFunction(self.to_owned()),
+                );
+            }
+            None => {}
+        }
+        // self.env.vars.insert(
+        //     self.name.to_owned().unwrap(),
+        //     RuntimeObject::RuntimeFunction(self.to_owned()),
+        // );
     }
     pub fn eval(self: &mut Self, args: &[RuntimeObject]) -> Result<RuntimeObject> {
         // let remaing_args = self.args.len() - args.len();
@@ -45,6 +54,10 @@ impl Lambda {
         //         .collect();
         //     return Ok(RuntimeObject::RuntimeFunction(partial_fn));
         // };
+        // self.body.bfs_children().iter.for_each(|visit| {
+        //     // (*visit.data, visit.size.degree, visit.size.descendants);
+        //     println!("{}", visit.data)
+        // });
 
         self.bind_symbols(args);
         let result = eval_children(&mut self.body.root_mut(), &mut self.env)?
@@ -54,5 +67,20 @@ impl Lambda {
         Ok(result)
     }
 }
-
-// TODO: implement into for types
+//
+// fn cps(body: Node<Form>) -> Tree<Form> {
+//     match body.data() {
+//         Form::Root => todo!(),
+//         Form::Literal(_) => todo!(),
+//         Form::CallExpression(_) => todo!(),
+//         Form::Symbol(_) => todo!(),
+//         Form::List => todo!(),
+//     }
+//     todo!()
+// }
+//
+// fn rearrange_nodes(body: Node<Form>) -> Tree<Form> {
+//     todo!()
+// }
+//
+// // TODO: implement into for types
