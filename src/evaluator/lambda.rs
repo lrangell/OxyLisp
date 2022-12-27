@@ -7,7 +7,12 @@ use anyhow::*;
 use trees::{fr, tr, Forest, Node, Tree};
 
 impl Lambda {
-    pub fn new(name: Option<String>, args: Vec<String>, body: Tree<Form>, parent: Rc<Env>) -> Self {
+    pub fn new(
+        name: Option<String>,
+        args: Vec<String>,
+        body: Forest<Form>,
+        parent: Rc<Env>,
+    ) -> Self {
         Lambda {
             name,
             args,
@@ -33,9 +38,10 @@ impl Lambda {
     pub fn eval(self: &mut Self, args: &[RuntimeObject]) -> Result<RuntimeObject> {
         self.bind_symbols(args);
 
-        let result = eval(&self.body, Rc::new(self.env.clone()))?;
-
-        Ok(result)
+        Ok(eval_forest(self.body.clone(), Rc::new(self.env.clone()))?
+            .last()
+            .cloned()
+            .unwrap())
     }
 }
 

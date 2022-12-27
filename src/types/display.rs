@@ -1,4 +1,6 @@
-use crate::types::*;
+use trees::Node;
+
+use crate::prelude::*;
 
 impl fmt::Display for Tokens {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -70,6 +72,7 @@ impl fmt::Display for Env {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let items: Vec<String> = self
             .vars
+            .borrow()
             .clone()
             .into_iter()
             .map(|(sym, val)| format!("{} {}", sym, val))
@@ -83,7 +86,8 @@ pub trait PrintAST {
     fn print_ast(&self) -> Result<String>;
 }
 
-use std::fmt::Write;
+use core::fmt;
+use std::{borrow::Borrow, fmt::Write};
 impl PrintAST for Node<Form> {
     #[allow(unused_must_use)]
     fn _print_ast(&self, acc: &mut String) -> Result<String> {

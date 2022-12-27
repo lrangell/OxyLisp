@@ -52,7 +52,7 @@ trait Eval {
 pub struct Lambda {
     pub name: Option<String>,
     pub args: Vec<String>,
-    pub body: Tree<Form>,
+    pub body: Forest<Form>,
     pub env: Env,
     pub self_recursive: bool,
 }

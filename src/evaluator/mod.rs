@@ -83,9 +83,9 @@ fn build_lambda(node: &Node<Form>, env: EnvPointer, name: Option<String>) -> Res
         })
         .collect::<Result<Vec<String>>>()?;
 
-    let lambda_body = body.pop_front().unwrap();
+    // let lambda_body = body
 
-    let f = Lambda::new(name, args, lambda_body, env);
+    let f = Lambda::new(name, args, body, env);
     Ok(RuntimeObject::RuntimeFunction(f))
 }
 fn eval_if(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
