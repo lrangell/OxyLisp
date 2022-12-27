@@ -1,64 +1,40 @@
-use std::{borrow::BorrowMut, collections::HashMap, pin::Pin};
+use std::{borrow::BorrowMut, cell::RefCell, collections::HashMap, rc::Rc};
 
-use super::{eval_children, eval_forest};
+use super::{eval, eval_forest};
 use crate::prelude::{display::PrintAST, *};
 use anyhow::*;
-use log::debug;
-use trees::{fr, node, tr, tree, Forest, Node, Tree, TreeWalk};
+// use log::debug;
+use trees::{fr, tr, Forest, Node, Tree};
 
 impl Lambda {
-    pub fn new(
-        name: Option<String>,
-        args: Vec<String>,
-        body: Forest<Form>,
-        parent: Box<Env>,
-    ) -> Self {
-        if let Some(fname) = name.clone() {
-            let cps_body = cps(&mut body.clone().back_mut().unwrap(), fname);
-            let mut argss = args.clone();
-            argss.push("cont".to_string());
-            return Lambda {
-                name,
-                args: argss,
-                body: cps_body,
-                env: Box::new(Env {
-                    vars: HashMap::new(),
-                    parent: EnvType::LambdaEnv(parent),
-                }),
-            };
-        }
+    pub fn new(name: Option<String>, args: Vec<String>, body: Tree<Form>, parent: Rc<Env>) -> Self {
         Lambda {
             name,
             args,
             body,
-            env: Box::new(Env {
-                vars: HashMap::new(),
-                parent: EnvType::LambdaEnv(parent),
-            }),
+            self_recursive: false,
+            env: Env {
+                vars: RefCell::new(HashMap::new()),
+                parent: Some(parent),
+            },
         }
     }
     pub fn bind_symbols(self: &mut Self, values: &[RuntimeObject]) -> () {
-        //TODO: check for arity
+        self.env.vars.borrow_mut().clear();
+
         self.env
             .vars
+            .borrow_mut()
             .extend(self.args.iter().cloned().zip(values.to_owned().into_iter()));
-
-        match &self.name {
-            Some(name) => {
-                self.env.vars.insert(
-                    name.to_string(),
-                    RuntimeObject::RuntimeFunction(self.to_owned()),
-                );
-            }
-            None => {}
-        }
+    }
+    pub fn print_body(&self) -> String {
+        self.body.front().unwrap().print_ast().unwrap()
     }
     pub fn eval(self: &mut Self, args: &[RuntimeObject]) -> Result<RuntimeObject> {
         self.bind_symbols(args);
-        let result = eval_forest(&mut self.body, &mut self.env)?
-            .last()
-            .unwrap_or(&RuntimeObject::NoOp)
-            .to_owned();
+
+        let result = eval(&self.body, Rc::new(self.env.clone()))?;
+
         Ok(result)
     }
 }
@@ -89,9 +65,9 @@ fn rearrange_nodes(root: &mut Node<Form>, name: String) -> Tree<Form> {
 
         recurr_node.insert_next_sib(tr(Form::Symbol("v".to_string())));
 
-        //
         let mut new_form = recurr_node.detach();
         new_form.push_back(lambda_cont(root.deep_clone()));
+
         return new_form;
     }
     tr(Form::CallExpression("cont".to_string())) / root.deep_clone()

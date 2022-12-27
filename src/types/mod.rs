@@ -3,7 +3,7 @@
 pub mod display;
 use anyhow::{anyhow, Result};
 // use log::debug;
-use std::{collections::HashMap, fmt};
+use std::{cell::RefCell, collections::HashMap, fmt, rc::Rc};
 use trees::{Forest, Node, Tree};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
@@ -31,7 +31,7 @@ pub enum Literal {
     List(Vec<Literal>),
 }
 
-pub type BuiltInFunction = fn(&[RuntimeObject], &mut Box<Env>) -> Result<RuntimeObject>;
+pub type BuiltInFunction = fn(&[RuntimeObject]) -> Result<RuntimeObject>;
 
 #[derive(Debug, Clone)]
 pub enum Form {
@@ -52,8 +52,9 @@ trait Eval {
 pub struct Lambda {
     pub name: Option<String>,
     pub args: Vec<String>,
-    pub body: Forest<Form>,
-    pub env: Box<Env>,
+    pub body: Tree<Form>,
+    pub env: Env,
+    pub self_recursive: bool,
 }
 
 #[derive(Clone)]
@@ -95,6 +96,7 @@ impl RuntimeObject {
 pub trait Primitive {
     fn extract(&self);
     fn extract_numbers(&self) -> Result<Vec<i32>>;
+    fn extract_bools(&self) -> Result<Vec<bool>>;
 }
 
 impl Primitive for &[RuntimeObject] {
@@ -112,19 +114,31 @@ impl Primitive for &[RuntimeObject] {
             .collect::<Result<Vec<i32>>>()?;
         Ok(a)
     }
+    fn extract_bools(&self) -> Result<Vec<bool>> {
+        let a: Vec<bool> = self
+            .iter()
+            .map(|rto| match rto {
+                RuntimeObject::Primitive(Literal::Bool(b)) => Ok(b.clone()),
+                _ => Err(anyhow!("44 ")),
+            })
+            .collect::<Result<Vec<bool>>>()?;
+        Ok(a)
+    }
 }
 
 #[derive(Clone)]
 pub enum EnvType {
     RootEnv,
-    LambdaEnv(Box<Env>),
+    LambdaEnv(Rc<Env>),
 }
 
 #[derive(Clone)]
 pub struct Env {
-    pub vars: HashMap<String, RuntimeObject>,
-    pub parent: EnvType,
+    pub vars: RefCell<HashMap<String, RuntimeObject>>,
+    pub parent: Option<Rc<Env>>,
 }
+
+pub type EnvPointer = Rc<Env>;
 
 impl From<Literal> for Form {
     fn from(p: Literal) -> Self {

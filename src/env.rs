@@ -1,30 +1,36 @@
 use crate::prelude::*;
 use log::debug;
-use std::collections::hash_map;
+use std::{
+    borrow::{Borrow, BorrowMut},
+    cell::RefCell,
+    collections::{hash_map, HashMap},
+    rc::Rc,
+};
 
-pub fn init_env() -> Box<Env> {
-    Box::new(Env {
-        vars: hash_map::HashMap::new(),
-        parent: EnvType::RootEnv,
+pub fn init_env() -> EnvPointer {
+    Rc::new(Env {
+        vars: RefCell::new(HashMap::new()),
+        parent: None,
     })
 }
 
 impl Env {
     pub fn lookup(&self, symbol: &str) -> Option<RuntimeObject> {
-        debug!("Lookup: {symbol} ");
-        if let Some(value) = self.vars.get(symbol) {
+        debug!("lookup: {symbol} env: {:?}", self.defined_symbols());
+        if let Some(value) = self.vars.borrow().get(symbol) {
             debug!("found: {symbol} ");
             return Some(value.clone());
         }
         match &self.parent {
-            EnvType::RootEnv => {
-                debug!("root lookup end");
-                None
-            }
-            EnvType::LambdaEnv(parent) => {
-                debug!("lookup parent");
-                parent.lookup(symbol)
-            }
+            Some(parent) => parent.lookup(symbol),
+            None => self.vars.borrow().get(symbol).cloned(),
         }
+    }
+    pub fn defined_symbols(&self) -> Vec<String> {
+        self.vars
+            .borrow()
+            .clone()
+            .into_keys()
+            .collect::<Vec<String>>()
     }
 }

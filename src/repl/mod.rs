@@ -3,9 +3,9 @@ use crate::evaluator::eval_str;
 use reedline::{DefaultPrompt, FileBackedHistory, Reedline, Signal};
 
 pub fn init() {
-    let mut env = init_env();
+    let env = init_env();
     let history = Box::new(
-        FileBackedHistory::with_file(50, "/tmp/oxy_history.txt".into())
+        FileBackedHistory::with_file(50, "~/.cache/oxy_history.txt".into())
             .expect("Error configuring history with file"),
     );
 
@@ -19,7 +19,7 @@ pub fn init() {
         let sig = line_editor.read_line(&prompt);
         match sig {
             Ok(Signal::Success(buffer)) => {
-                let res = eval_str(&buffer, &mut env);
+                let res = eval_str(&buffer, env.clone());
                 match res {
                     Ok(primitive) => println!("{}", primitive),
                     Err(e) => println!("Error: {}", e.to_string()),

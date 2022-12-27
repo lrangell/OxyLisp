@@ -1,4 +1,7 @@
 #![feature(iter_advance_by)]
+#![feature(box_into_inner)]
+
+use std::env::{args, args_os};
 
 extern crate log;
 
@@ -16,5 +19,12 @@ mod tests;
 mod types;
 
 fn main() {
-    repl::init();
+    let a = args().collect::<Vec<String>>();
+    if a.len() < 2 {
+        repl::init();
+    } else {
+        let env = env::init_env();
+        let r = evaluator::eval_str(&a[1], env);
+        println!("{}", r.unwrap());
+    }
 }
