@@ -151,6 +151,18 @@ impl From<Literal> for RuntimeObject {
     }
 }
 
+impl From<i32> for RuntimeObject {
+    fn from(value: i32) -> Self {
+        RuntimeObject::Primitive(Literal::Integer(value))
+    }
+}
+
+impl From<bool> for RuntimeObject {
+    fn from(value: bool) -> Self {
+        RuntimeObject::Primitive(Literal::Bool(value))
+    }
+}
+
 impl From<Form> for Literal {
     fn from(value: Form) -> Self {
         match value {

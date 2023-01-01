@@ -24,7 +24,7 @@ impl Lambda {
             },
         }
     }
-    pub fn bind_symbols(self: &mut Self, values: &[RuntimeObject]) -> () {
+    pub fn bind_symbols(&self, values: &[RuntimeObject]) -> () {
         self.env.vars.borrow_mut().clear();
 
         self.env
@@ -35,9 +35,7 @@ impl Lambda {
     pub fn print_body(&self) -> String {
         self.body.front().unwrap().print_ast().unwrap()
     }
-    pub fn eval(self: &mut Self, args: &[RuntimeObject]) -> Result<RuntimeObject> {
-        self.bind_symbols(args);
-
+    pub fn eval(&self, args: &[RuntimeObject]) -> Result<RuntimeObject> {
         Ok(eval_forest(self.body.clone(), Rc::new(self.env.clone()))?
             .last()
             .cloned()

@@ -13,35 +13,45 @@ fn map(args: &[RuntimeObject]) -> Result<RuntimeObject, Error> {
     };
     Err(anyhow!(" "))
 }
+fn fold(args: &[RuntimeObject]) -> Result<RuntimeObject> {
+    if let [RuntimeObject::RuntimeFunction(ff), RuntimeObject::List(list), init] = args {
+        return list.iter().fold(
+            Ok(init.clone()),
+            |acc: Result<RuntimeObject>, curr: &RuntimeObject| -> Result<RuntimeObject> {
+                ff.eval(&[acc?, curr.clone()])
+            },
+        );
+    };
+    Err(anyhow!("Invalid arguments to fold"))
+}
 
 fn add(args: &[RuntimeObject]) -> Result<RuntimeObject> {
-    let sum = args.extract_numbers()?.iter().sum();
-
-    Ok(RuntimeObject::Primitive(Literal::Integer(sum)))
+    let sum: i32 = args.extract_numbers()?.iter().sum();
+    Ok(sum.into())
 }
 fn subtract(args: &[RuntimeObject]) -> Result<RuntimeObject> {
     let num_args = args.extract_numbers()?;
     let (head, nums) = num_args.split_first().unwrap();
     let res: i32 = *head - nums.to_vec().iter().sum::<i32>();
-    Ok(RuntimeObject::Primitive(Literal::Integer(res)))
+    Ok(res.into())
 }
 
 fn multiply(args: &[RuntimeObject]) -> Result<RuntimeObject> {
-    let product = args.extract_numbers()?.iter().product();
-    Ok(RuntimeObject::Primitive(Literal::Integer(product)))
+    let product: i32 = args.extract_numbers()?.iter().product();
+    Ok(product.into())
 }
 fn less(args: &[RuntimeObject]) -> Result<RuntimeObject> {
     let [left, right] = args.extract_numbers()?[..] else {
           return Err(anyhow!("arguments must be numbers"));
     };
-    Ok(RuntimeObject::Primitive(Literal::Bool(left < right)))
+    Ok((left < right).into())
 }
 fn equal(args: &[RuntimeObject]) -> Result<RuntimeObject> {
     let rtos = args.to_owned();
     let [RuntimeObject::Primitive(left), RuntimeObject::Primitive(right)] = rtos.as_slice() else {
         return Err(anyhow!(""));
     };
-    Ok(RuntimeObject::Primitive(Literal::Bool(left == right)))
+    Ok((left == right).into())
 }
 fn fold_or(args: &[RuntimeObject]) -> Result<RuntimeObject> {
     let res = args
@@ -49,10 +59,11 @@ fn fold_or(args: &[RuntimeObject]) -> Result<RuntimeObject> {
         .into_iter()
         .reduce(|curr, acc| acc || curr)
         .unwrap();
-    Ok(RuntimeObject::Primitive(Literal::Bool(res)))
+    Ok(res.into())
 }
 
-static MAP: [(&str, BuiltInFunction); 7] = [
+static MAP: [(&str, BuiltInFunction); 8] = [
+    ("fold", fold),
     ("map", map),
     ("+", add),
     ("-", subtract),
