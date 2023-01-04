@@ -97,6 +97,7 @@ pub trait Primitive {
     fn extract(&self);
     fn extract_numbers(&self) -> Result<Vec<i32>>;
     fn extract_bools(&self) -> Result<Vec<bool>>;
+    fn extract_lists(&self) -> Result<Vec<Vec<RuntimeObject>>>;
 }
 
 impl Primitive for &[RuntimeObject] {
@@ -109,7 +110,7 @@ impl Primitive for &[RuntimeObject] {
             .iter()
             .map(|rto| match rto {
                 RuntimeObject::Primitive(Literal::Integer(i)) => Ok(i.clone()),
-                _ => Err(anyhow!("44 ")),
+                _ => Err(anyhow!("Non integer object")),
             })
             .collect::<Result<Vec<i32>>>()?;
         Ok(a)
@@ -119,10 +120,19 @@ impl Primitive for &[RuntimeObject] {
             .iter()
             .map(|rto| match rto {
                 RuntimeObject::Primitive(Literal::Bool(b)) => Ok(b.clone()),
-                _ => Err(anyhow!("44 ")),
+                _ => Err(anyhow!("Non boolean object")),
             })
             .collect::<Result<Vec<bool>>>()?;
         Ok(a)
+    }
+    fn extract_lists(&self) -> Result<Vec<Vec<RuntimeObject>>> {
+        self.into_iter()
+            .map(|rto| match rto {
+                //TODO: avoid clone
+                RuntimeObject::List(l) => Ok(l.clone()),
+                _ => Err(anyhow!("Non list object")),
+            })
+            .collect::<Result<Vec<Vec<RuntimeObject>>>>()
     }
 }
 

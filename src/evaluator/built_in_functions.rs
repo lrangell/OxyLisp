@@ -61,8 +61,21 @@ fn fold_or(args: &[RuntimeObject]) -> Result<RuntimeObject> {
         .unwrap();
     Ok(res.into())
 }
+fn concat(args: &[RuntimeObject]) -> Result<RuntimeObject> {
+    let list = args.extract_lists()?.into_iter().flatten().collect();
+    Ok(RuntimeObject::List(list))
+}
+fn range(args: &[RuntimeObject]) -> Result<RuntimeObject> {
+    let args_as_numbers = args.extract_numbers()?;
+    let [start, end] = args_as_numbers[..] else {return Err(anyhow!("Range need start and end"));};
+    let list: Vec<RuntimeObject> = (start..end)
+        .map(|i| RuntimeObject::Primitive(Literal::Integer(i)))
+        .collect();
 
-static MAP: [(&str, BuiltInFunction); 8] = [
+    Ok(RuntimeObject::List(list))
+}
+
+static MAP: [(&str, BuiltInFunction); 10] = [
     ("fold", fold),
     ("map", map),
     ("+", add),
@@ -71,6 +84,8 @@ static MAP: [(&str, BuiltInFunction); 8] = [
     ("<", less),
     ("=", equal),
     ("or", fold_or),
+    ("concat", concat),
+    ("range", range),
 ];
 
 pub static FUNCTIONS: Lazy<HashMap<&str, BuiltInFunction>> = Lazy::new(|| HashMap::from(MAP));
