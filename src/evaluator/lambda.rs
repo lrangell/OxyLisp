@@ -36,6 +36,7 @@ impl Lambda {
         self.body.front().unwrap().print_ast().unwrap()
     }
     pub fn eval(&self, args: &[RuntimeObject]) -> Result<RuntimeObject> {
+        self.bind_symbols(args);
         Ok(eval_forest(self.body.clone(), Rc::new(self.env.clone()))?
             .last()
             .cloned()
