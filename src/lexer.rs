@@ -1,6 +1,13 @@
 use crate::prelude::*;
+use lazy_static::lazy_static;
 use log::debug;
 use regex::Regex;
+
+lazy_static! {
+    static ref IS_SYMBOL: Regex = Regex::new(r"[A-Za-z+*-=]").unwrap();
+    static ref IS_STRING: Regex = Regex::new("\".*\"").unwrap();
+    static ref IS_INTEGER: Regex = Regex::new("\".*\"").unwrap();
+}
 
 pub fn tokenize(expression: &str) -> Vec<Tokens> {
     let is_symbol = Regex::new(r"[A-Za-z+*-=]").unwrap();

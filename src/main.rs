@@ -1,5 +1,7 @@
 #![feature(iter_advance_by)]
 #![feature(box_into_inner)]
+#[macro_use]
+extern crate lazy_static;
 
 use std::env::{args, args_os};
 

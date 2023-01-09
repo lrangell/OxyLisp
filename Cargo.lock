@@ -741,6 +741,7 @@ dependencies = [
  "anyhow",
  "criterion",
  "env_logger",
+ "lazy_static",
  "log",
  "once_cell",
  "pretty_assertions",
