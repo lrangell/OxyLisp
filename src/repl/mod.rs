@@ -30,7 +30,7 @@ pub fn init() {
                 break;
             }
             x => {
-                println!("Event: {:?}", x);
+                println!("Event: {x:?}");
             }
         }
     }

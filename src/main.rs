@@ -1,13 +1,11 @@
 #![feature(iter_advance_by)]
 #![feature(box_into_inner)]
-#[macro_use]
 extern crate lazy_static;
 
-use std::env::{args, args_os};
+use std::env::args;
 
 extern crate log;
 
-#[macro_use()]
 extern crate trees;
 
 mod env;

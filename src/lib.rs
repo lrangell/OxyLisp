@@ -5,4 +5,4 @@ pub mod parser;
 pub mod prelude;
 pub mod types;
 
-pub use env_logger;
+pub use test_log;

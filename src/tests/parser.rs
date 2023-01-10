@@ -1,8 +1,7 @@
 use serial_test::serial;
 
-use crate::types::display::PrintAST;
-use crate::{lexer::tokenize, parser::*};
-use pretty_assertions::{assert_eq, assert_ne};
+use crate::{parser::*, types::display::PrintAST};
+use pretty_assertions::assert_eq;
 
 fn assert_parse_eq(code: &str) {
     let ast = parse_string(code).unwrap();

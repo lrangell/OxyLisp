@@ -1,18 +1,9 @@
 mod built_in_functions;
 mod lambda;
 
-use std::{
-    borrow::{Borrow, BorrowMut},
-    ops::Deref,
-    rc::Rc,
-};
-
-use crate::{
-    parser::parse_string,
-    prelude::{display::PrintAST, *},
-};
+use crate::{parser::parse_string, prelude::*};
 use anyhow::*;
-use once_cell::sync::Lazy;
+// use log::debug;
 // use log::debug;
 // use log::{debug, info};
 use trees::{Forest, Node, Tree};
@@ -115,7 +106,7 @@ fn eval_call_expr(name: String, form: &Node<Form>, env: EnvPointer) -> Result<Ru
         return f(&args);
     }
 
-    if let Some(RuntimeObject::RuntimeFunction(mut f)) = env.lookup(&name) {
+    if let Some(RuntimeObject::RuntimeFunction(f)) = env.lookup(&name) {
         return f.eval(&args);
     }
 
@@ -139,8 +130,8 @@ fn eval_forest(forest: Forest<Form>, env: EnvPointer) -> Result<Vec<RuntimeObjec
         .collect::<Result<Vec<RuntimeObject>>>()
 }
 pub fn eval_str(code: &str, env: EnvPointer) -> Result<RuntimeObject> {
-    let mut ast = parse_string(code)?;
-    let mut forest = ast.deep_clone_forest();
+    let ast = parse_string(code)?;
+    let forest = ast.deep_clone_forest();
     let res = eval_forest(forest, env)?;
     Ok(res.last().unwrap().clone())
 }

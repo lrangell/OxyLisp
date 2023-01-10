@@ -1,11 +1,6 @@
 use crate::prelude::*;
 use log::debug;
-use std::{
-    borrow::{Borrow, BorrowMut},
-    cell::RefCell,
-    collections::{hash_map, HashMap},
-    rc::Rc,
-};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 pub fn init_env() -> EnvPointer {
     Rc::new(Env {

@@ -16,7 +16,7 @@ fn fibonacci(c: &mut Criterion) {
 }
 
 fn recursive_sum(c: &mut Criterion) {
-    let mut env = init_env();
+    let env = init_env();
     eval_str(
         "(defn range-sum [limit acc] (if (= limit 0) acc (range-sum (+ limit -1) (+ acc limit))))",
         env.clone(),
@@ -31,7 +31,7 @@ fn recursive_sum(c: &mut Criterion) {
     });
 }
 fn factorial(c: &mut Criterion) {
-    let mut env = init_env();
+    let env = init_env();
     eval_str(
         "(defn fac [n] (if (= 1 n) 1 (+ n (fac (+ n -1)))))",
         env.clone(),

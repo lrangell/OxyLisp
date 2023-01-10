@@ -1,6 +1,6 @@
-use std::{borrow::BorrowMut, cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use super::{eval, eval_forest};
+use super::eval_forest;
 use crate::prelude::{display::PrintAST, *};
 use anyhow::*;
 // use log::debug;
@@ -32,6 +32,7 @@ impl Lambda {
             .borrow_mut()
             .extend(self.args.iter().cloned().zip(values.to_owned().into_iter()));
     }
+    #[allow(dead_code)]
     pub fn print_body(&self) -> String {
         self.body.front().unwrap().print_ast().unwrap()
     }
@@ -44,6 +45,7 @@ impl Lambda {
     }
 }
 
+#[allow(dead_code)]
 fn lambda_cont(body: Tree<Form>) -> Tree<Form> {
     let lambda_arg = tr(Form::List) / tr(Form::Symbol("v".to_string()));
     let mut lambda = tr(Form::CallExpression("fn".to_string())) / lambda_arg;
@@ -51,22 +53,22 @@ fn lambda_cont(body: Tree<Form>) -> Tree<Form> {
     lambda.push_back(tr(Form::CallExpression("cont".to_string())) / body);
     lambda
 }
-
+#[allow(dead_code)]
 fn find_recurr(root: &mut Node<Form>, name: String) -> Option<&mut Node<Form>> {
     unsafe {
         match root.data() {
             Form::CallExpression(sym) if *sym == name => Some(root),
             Form::CallExpression(_) => root
                 .iter_mut()
-                .find_map(|mut n| find_recurr(n.get_unchecked_mut(), name.clone())),
+                .find_map(|n| find_recurr(n.get_unchecked_mut(), name.clone())),
             _ => None,
         }
     }
 }
-
+#[allow(dead_code)]
 fn rearrange_nodes(root: &mut Node<Form>, name: String) -> Tree<Form> {
     if let Form::CallExpression(_) = root.data() {
-        let mut recurr_node = find_recurr(root, name).unwrap();
+        let recurr_node = find_recurr(root, name).unwrap();
 
         recurr_node.insert_next_sib(tr(Form::Symbol("v".to_string())));
 
@@ -77,6 +79,7 @@ fn rearrange_nodes(root: &mut Node<Form>, name: String) -> Tree<Form> {
     }
     tr(Form::CallExpression("cont".to_string())) / root.deep_clone()
 }
+#[allow(dead_code)]
 fn cps(root: &mut Node<Form>, name: String) -> Forest<Form> {
     match root.data() {
         Form::CallExpression(sym) if sym.to_string() == "if" => {

@@ -3,8 +3,9 @@
 pub mod display;
 use anyhow::{anyhow, Result};
 // use log::debug;
-use std::{cell::RefCell, collections::HashMap, fmt, rc::Rc};
-use trees::{Forest, Node, Tree};
+use std::collections::HashMap;
+use std::{cell::RefCell, rc::Rc};
+use trees::Forest;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum TokenBounds {

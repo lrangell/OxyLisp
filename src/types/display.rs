@@ -87,7 +87,7 @@ pub trait PrintAST {
 }
 
 use core::fmt;
-use std::{borrow::Borrow, fmt::Write};
+use std::fmt::Write;
 impl PrintAST for Node<Form> {
     #[allow(unused_must_use)]
     fn _print_ast(&self, acc: &mut String) -> Result<String> {

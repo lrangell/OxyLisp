@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use anyhow::*;
 use once_cell::sync::Lazy;
-use std::{collections::HashMap, rc::Rc};
+use std::collections::HashMap;
 
 fn map(args: &[RuntimeObject]) -> Result<RuntimeObject, Error> {
     if let [RuntimeObject::RuntimeFunction(f), RuntimeObject::List(list)] = args {
