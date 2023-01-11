@@ -18,9 +18,8 @@ pub fn init() {
     loop {
         let sig = line_editor.read_line(&prompt);
         match sig {
-            Ok(Signal::Success(buffer)) => {
-                let res = eval_str(&buffer, env.clone());
-                match res {
+            Ok(Signal::Success(buffer)) if buffer.len() > 0 => {
+                match eval_str(&buffer, env.clone()) {
                     Ok(primitive) => println!("{}", primitive),
                     Err(e) => println!("Error: {}", e.to_string()),
                 }
@@ -29,8 +28,8 @@ pub fn init() {
                 println!("\nAborted!");
                 break;
             }
-            x => {
-                println!("Event: {x:?}");
+            _ => {
+                println!("");
             }
         }
     }
