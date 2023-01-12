@@ -1,11 +1,10 @@
 mod built_in_functions;
 mod lambda;
 
+use std::collections::HashMap;
+
 use crate::{parser::parse_string, prelude::*};
 use anyhow::*;
-// use log::debug;
-// use log::debug;
-// use log::{debug, info};
 use trees::{Forest, Node, Tree};
 
 pub fn eval(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
@@ -19,11 +18,13 @@ pub fn eval(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
             _ => eval_call_expr(symbol, node, env),
         },
         Form::List => eval_list(node, env),
+        Form::Record => record(node, env),
         Form::Symbol(symbol) if symbol == "env" => Ok(RuntimeObject::NoOp),
         Form::Symbol(symbol) => env
             .lookup(&symbol)
             .ok_or(anyhow!("{symbol} is not defined ")),
         Form::Literal(l) => Ok(l.to_owned().into()),
+        Form::Key(_) => unreachable!("Eval of record key"),
     }
 }
 
@@ -37,6 +38,25 @@ fn def(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
         .insert(symbol_node.data().to_string(), value);
 
     Ok(RuntimeObject::NoOp)
+}
+
+fn record(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
+    let pairs = node
+        .iter()
+        .collect::<Vec<&Node<Form>>>()
+        .windows(2)
+        .map(|pair| -> Result<(String, RuntimeObject)> {
+            match pair {
+                [k, v] => match k.data() {
+                    Form::Key(key) => Ok((key.clone(), eval(v, env.clone())?)),
+                    _ => Err(anyhow!("Record keys must be Strings")),
+                },
+                _ => Err(anyhow!("Uneven number of forms")),
+            }
+        })
+        .collect::<Result<Vec<(String, RuntimeObject)>>>()?;
+    let record: HashMap<String, RuntimeObject> = HashMap::from_iter(pairs);
+    Ok(RuntimeObject::Record(record))
 }
 fn defn(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
     let mut body = node.deep_clone();

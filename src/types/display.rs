@@ -8,6 +8,7 @@ impl fmt::Display for Tokens {
             Self::Bounds(b) => write!(f, "{}", b),
             Self::Literal(p) => write!(f, "{}", p),
             Self::Symbol(p) => write!(f, "{}", p),
+            Self::Key(k) => write!(f, "{k}"),
         }
     }
 }
@@ -18,6 +19,8 @@ impl fmt::Display for TokenBounds {
             Self::RightParen => write!(f, ")"),
             Self::LeftBracket => write!(f, "["),
             Self::RightBracket => write!(f, "]"),
+            Self::LeftCurlyBraces => write!(f, "{{"),
+            Self::RightCurlyBraces => write!(f, "}}"),
         }
     }
 }
@@ -34,6 +37,8 @@ impl fmt::Display for Form {
                 write!(f, "[]",)
             }
             Form::Root => write!(f, "",),
+            Form::Record => write!(f, "{{}}"),
+            Form::Key(_) => todo!(),
         }
     }
 }
@@ -49,6 +54,11 @@ impl fmt::Display for Literal {
                 let literal_strings: Vec<String> = s.iter().map(|p| p.to_string()).collect();
                 write!(f, "[{}]", literal_strings.join(" "))
             }
+            Literal::Record(s) => {
+                let literal_strings: Vec<String> =
+                    s.iter().map(|(k, v)| format!("{k}: {v}")).collect();
+                write!(f, "{{{}}}", literal_strings.join(" "))
+            }
             Literal::Symbol(s) => write!(f, "{s}"),
         }
     }
@@ -62,6 +72,11 @@ impl fmt::Display for RuntimeObject {
             RuntimeObject::List(s) => {
                 let literal_strings: Vec<String> = s.iter().map(|p| p.to_string()).collect();
                 write!(f, "[{}]", literal_strings.join(" "))
+            }
+            RuntimeObject::Record(s) => {
+                let literal_strings: Vec<String> =
+                    s.iter().map(|(k, v)| format!("{k}: {v}")).collect();
+                write!(f, "{{{}}}", literal_strings.join(" "))
             }
             RuntimeObject::NoOp => write!(f, "",),
         }
@@ -114,6 +129,14 @@ impl PrintAST for Node<Form> {
                 });
                 write!(acc, "")
             }
+            Form::Record => {
+                write!(acc, " {{")?;
+                self.iter().for_each(|n| {
+                    n._print_ast(acc);
+                });
+                write!(acc, "}} ")
+            }
+            Form::Key(k) => write!(acc, " {k}"),
         }?;
         Ok(acc
             .replace("[ ", "[")

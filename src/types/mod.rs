@@ -13,6 +13,8 @@ pub enum TokenBounds {
     RightParen,
     LeftBracket,
     RightBracket,
+    LeftCurlyBraces,
+    RightCurlyBraces,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -20,6 +22,7 @@ pub enum Tokens {
     Bounds(TokenBounds),
     Literal(Literal),
     Symbol(String),
+    Key(String),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -30,6 +33,7 @@ pub enum Literal {
     Integer(i32),
     Bool(bool),
     List(Vec<Literal>),
+    Record(HashMap<String, Literal>),
 }
 
 pub type BuiltInFunction = fn(&[RuntimeObject]) -> Result<RuntimeObject>;
@@ -41,6 +45,8 @@ pub enum Form {
     CallExpression(String),
     Symbol(String),
     List,
+    Record,
+    Key(String),
 }
 
 pub type CallExpression = (String, Vec<Form>);
@@ -63,6 +69,7 @@ pub enum RuntimeObject {
     NoOp,
     Primitive(Literal),
     List(Vec<RuntimeObject>),
+    Record(HashMap<String, RuntimeObject>),
     Function(BuiltInFunction),
     RuntimeFunction(Lambda),
 }
@@ -182,6 +189,8 @@ impl From<Form> for Literal {
             Form::Symbol(s) => todo!(),
             Form::List => todo!(),
             Form::Root => todo!(),
+            Form::Record => todo!(),
+            Form::Key(_) => todo!(),
         }
     }
 }
@@ -203,6 +212,7 @@ impl From<Tokens> for Form {
             Tokens::Bounds(_) => unreachable!(),
             Tokens::Literal(l) => Form::Literal(l),
             Tokens::Symbol(s) => Form::Symbol(s),
+            Tokens::Key(k) => Form::Key(k),
         }
     }
 }

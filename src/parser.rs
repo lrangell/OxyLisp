@@ -1,4 +1,7 @@
-use crate::{lexer::tokenize, prelude::*};
+use crate::{
+    lexer::tokenize,
+    prelude::{display::PrintAST, *},
+};
 use anyhow::{anyhow, Result};
 use trees::{Node, Tree};
 
@@ -37,6 +40,18 @@ pub fn parse(tokens: &[Tokens], ast: &mut Node<Form>) -> Result<()> {
             parse(rest, &mut dummy.root_mut())?;
             ast.append(dummy.abandon());
         }
+        Tokens::Bounds(TokenBounds::LeftCurlyBraces) => {
+            let (inner, rest) = split_at_bound(tail, OpenBoundsTracker::curlybrace_tracker())?;
+
+            let mut record = Tree::new(Form::Record);
+            parse(inner, &mut record.root_mut())?;
+            ast.push_back(record.clone());
+
+            let mut dummy = Tree::new(Form::Root);
+            parse(rest, &mut dummy.root_mut())?;
+            ast.append(dummy.abandon());
+        }
+
         Tokens::Bounds(_) => parse(tail, ast)?,
 
         token => {
@@ -85,6 +100,13 @@ impl OpenBoundsTracker {
         OpenBoundsTracker {
             opener: TokenBounds::LeftBracket,
             closer: TokenBounds::RightBracket,
+            count: 1,
+        }
+    }
+    fn curlybrace_tracker() -> Self {
+        OpenBoundsTracker {
+            opener: TokenBounds::LeftCurlyBraces,
+            closer: TokenBounds::RightCurlyBraces,
             count: 1,
         }
     }
