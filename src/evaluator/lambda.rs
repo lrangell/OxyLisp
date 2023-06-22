@@ -24,13 +24,13 @@ impl Lambda {
             },
         }
     }
-    pub fn bind_symbols(&self, values: &[RuntimeObject]) -> () {
+    pub fn bind_symbols(&self, values: &[RuntimeObject]) {
         self.env.vars.borrow_mut().clear();
 
         self.env
             .vars
             .borrow_mut()
-            .extend(self.args.iter().cloned().zip(values.to_owned().into_iter()));
+            .extend(self.args.iter().cloned().zip(values.iter().cloned()));
     }
     #[allow(dead_code)]
     pub fn print_body(&self) -> String {
@@ -82,7 +82,7 @@ fn rearrange_nodes(root: &mut Node<Form>, name: String) -> Tree<Form> {
 #[allow(dead_code)]
 fn cps(root: &mut Node<Form>, name: String) -> Forest<Form> {
     match root.data() {
-        Form::CallExpression(sym) if sym.to_string() == "if" => {
+        Form::CallExpression(sym) if *sym == "if" => {
             let condition = root.pop_front().unwrap();
             let mut left_forest = root.pop_front().unwrap().deep_clone();
             let mut right_forest = root.pop_front().unwrap().deep_clone();

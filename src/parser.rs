@@ -9,9 +9,7 @@ pub fn parse<'a>(tokens: &[Tokens], ast: &'a mut Node<Form>) -> Result<&'a mut N
     if tokens.is_empty() {
         return Ok(ast);
     }
-    let (head, tail) = tokens
-        .split_first()
-        .ok_or(anyhow!("\nEmpty token vector\n"))?;
+    let (head, tail) = tokens.split_first().unwrap();
 
     return match head {
         Tokens::Bounds(TokenBounds::LeftParen) => {
@@ -43,6 +41,9 @@ pub fn parse<'a>(tokens: &[Tokens], ast: &'a mut Node<Form>) -> Result<&'a mut N
     };
 }
 
+/// Parses [tokens] between bounds delimited by `tracker` into `root_form`
+/// then parses remaining tokens into `ast`
+/// see also [parse_remaining]
 fn parse_into<'a>(
     root_form: Form,
     tracker: OpenBoundsTracker,
@@ -59,7 +60,7 @@ fn parse_remaining<'a>(rest: &[Tokens], ast: &'a mut Node<Form>) -> Result<&'a m
     let mut empty_tree = Tree::new(Form::Root);
     parse(rest, &mut empty_tree.root_mut())?;
     ast.append(empty_tree.abandon());
-    return Ok(ast);
+    Ok(ast)
 }
 
 fn split_at_bound(

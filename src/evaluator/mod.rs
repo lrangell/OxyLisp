@@ -23,7 +23,7 @@ pub fn eval(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
         Form::Symbol(symbol) => env
             .lookup(&symbol)
             .ok_or(anyhow!("{symbol} is not defined ")),
-        Form::Literal(l) => Ok(l.to_owned().into()),
+        Form::Literal(l) => Ok(l.into()),
         Form::Key(_) => unreachable!("Eval of record key"),
     }
 }
@@ -115,8 +115,7 @@ fn eval_if(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
         _ => todo!(),
     };
 
-    let res = eval(choosen_arm, env.clone());
-    res
+    eval(choosen_arm, env)
 }
 
 fn eval_call_expr(name: String, form: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
@@ -130,7 +129,7 @@ fn eval_call_expr(name: String, form: &Node<Form>, env: EnvPointer) -> Result<Ru
         return f.eval(&args);
     }
 
-    return Err(anyhow!("{name} is not defined"));
+    Err(anyhow!("{name} is not defined"))
 }
 fn eval_list(form: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
     eval_children(form, env).map(RuntimeObject::List)

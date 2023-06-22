@@ -18,7 +18,7 @@ pub fn init() {
     loop {
         let sig = line_editor.read_line(&prompt);
         match sig {
-            Ok(Signal::Success(buffer)) if buffer.len() > 0 => {
+            Ok(Signal::Success(buffer)) if buffer.is_empty() => {
                 match eval_str(&buffer, env.clone()) {
                     Ok(primitive) => println!("{}", primitive),
                     Err(e) => println!("Error: {}", e.to_string()),
@@ -28,9 +28,7 @@ pub fn init() {
                 println!("\nAborted!");
                 break;
             }
-            _ => {
-                println!("");
-            }
+            _ => {}
         }
     }
 }

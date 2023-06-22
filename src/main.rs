@@ -14,8 +14,6 @@ mod lexer;
 mod parser;
 mod prelude;
 mod repl;
-#[cfg(test)]
-mod tests;
 mod types;
 
 fn main() {
@@ -28,3 +26,5 @@ fn main() {
         println!("{}", r.unwrap());
     }
 }
+#[cfg(test)]
+mod tests;

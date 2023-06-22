@@ -117,7 +117,7 @@ impl Primitive for &[RuntimeObject] {
         let a: Vec<i32> = self
             .iter()
             .map(|rto| match rto {
-                RuntimeObject::Primitive(Literal::Integer(i)) => Ok(i.clone()),
+                RuntimeObject::Primitive(Literal::Integer(i)) => Ok(*i),
                 _ => Err(anyhow!("Non integer object")),
             })
             .collect::<Result<Vec<i32>>>()?;
@@ -127,14 +127,14 @@ impl Primitive for &[RuntimeObject] {
         let a: Vec<bool> = self
             .iter()
             .map(|rto| match rto {
-                RuntimeObject::Primitive(Literal::Bool(b)) => Ok(b.clone()),
+                RuntimeObject::Primitive(Literal::Bool(b)) => Ok(*b),
                 _ => Err(anyhow!("Non boolean object")),
             })
             .collect::<Result<Vec<bool>>>()?;
         Ok(a)
     }
     fn extract_lists(&self) -> Result<Vec<Vec<RuntimeObject>>> {
-        self.into_iter()
+        self.iter()
             .map(|rto| match rto {
                 //TODO: avoid clone
                 RuntimeObject::List(l) => Ok(l.clone()),
