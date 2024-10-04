@@ -3,16 +3,10 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use super::eval_forest;
 use crate::prelude::{display::PrintAST, *};
 use anyhow::*;
-// use log::debug;
-use trees::{fr, tr, Forest, Node, Tree};
+use trees::{fr, tr, Node, Tree};
 
 impl Lambda {
-    pub fn new(
-        name: Option<String>,
-        args: Vec<String>,
-        body: Forest<Form>,
-        parent: Rc<Env>,
-    ) -> Self {
+    pub fn new(name: Option<String>, args: Vec<String>, body: Tree<Form>, parent: Rc<Env>) -> Self {
         Lambda {
             name,
             args,
@@ -80,7 +74,7 @@ fn rearrange_nodes(root: &mut Node<Form>, name: String) -> Tree<Form> {
     tr(Form::CallExpression("cont".to_string())) / root.deep_clone()
 }
 #[allow(dead_code)]
-fn cps(root: &mut Node<Form>, name: String) -> Forest<Form> {
+fn cps(root: &mut Node<Form>, name: String) -> Tree<Form> {
     match root.data() {
         Form::CallExpression(sym) if *sym == "if" => {
             let condition = root.pop_front().unwrap();
@@ -94,7 +88,7 @@ fn cps(root: &mut Node<Form>, name: String) -> Forest<Form> {
             new_tree.push_back(condition);
             new_tree.push_back(cps_left);
             new_tree.push_back(cps_right);
-            let mut forest: Forest<Form> = fr();
+            let mut forest: Tree<Form> = fr();
             forest.push_front(new_tree);
             forest
         }

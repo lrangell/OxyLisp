@@ -2,10 +2,9 @@
 #![allow(unused_variables)]
 pub mod display;
 use anyhow::{anyhow, Result};
-// use log::debug;
 use std::collections::HashMap;
 use std::{cell::RefCell, rc::Rc};
-use trees::Forest;
+use trees::Tree;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum TokenBounds {
@@ -38,7 +37,7 @@ pub enum Literal {
 
 pub type BuiltInFunction = fn(&[RuntimeObject]) -> Result<RuntimeObject>;
 
-#[derive(Debug, Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum Form {
     Root,
     Literal(Literal),
@@ -59,7 +58,7 @@ trait Eval {
 pub struct Lambda {
     pub name: Option<String>,
     pub args: Vec<String>,
-    pub body: Forest<Form>,
+    pub body: Tree<Form>,
     pub env: Env,
     pub self_recursive: bool,
 }

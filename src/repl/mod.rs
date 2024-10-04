@@ -21,7 +21,7 @@ pub fn init() {
             Ok(Signal::Success(buffer)) if buffer.is_empty() => {
                 match eval_str(&buffer, env.clone()) {
                     Ok(primitive) => println!("{}", primitive),
-                    Err(e) => println!("Error: {}", e.to_string()),
+                    Err(e) => println!("Error: {}", e),
                 }
             }
             Ok(Signal::CtrlD) | Ok(Signal::CtrlC) => {

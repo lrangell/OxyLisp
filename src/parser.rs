@@ -1,21 +1,20 @@
-use crate::{
-    lexer::tokenize,
-    prelude::{display::PrintAST, *},
-};
+use crate::{lexer::tokenize, prelude::*};
 use anyhow::{anyhow, Result};
-use trees::{Node, Tree};
+use trees::Tree;
 
-pub fn parse<'a>(tokens: &[Tokens], ast: &'a mut Node<Form>) -> Result<&'a mut Node<Form>> {
-    if tokens.is_empty() {
+pub fn parse(tokens: &[Tokens], mut ast: Tree<Form>) -> Result<Tree<Form>> {
+    let Some((head, tail)) = tokens.split_first() else {
         return Ok(ast);
-    }
-    let (head, tail) = tokens.split_first().unwrap();
+    };
 
-    return match head {
+    match head {
         Tokens::Bounds(TokenBounds::LeftParen) => {
             let (Tokens::Symbol(sym), right_tokens) = tail
                 .split_first()
-                .ok_or(anyhow!("Unexpected empty parens"))? else {return Err(anyhow!(" "))};
+                .ok_or(anyhow!("Unexpected empty parens"))?
+            else {
+                return Err(anyhow!(" "));
+            };
             parse_into(
                 Form::CallExpression(sym.clone()),
                 OpenBoundsTracker::parens(),
@@ -38,28 +37,19 @@ pub fn parse<'a>(tokens: &[Tokens], ast: &'a mut Node<Form>) -> Result<&'a mut N
             ast.push_back(Tree::new(form));
             parse(tail, ast)
         }
-    };
+    }
 }
 
-/// Parses [tokens] between bounds delimited by `tracker` into `root_form`
-/// then parses remaining tokens into `ast`
-/// see also [parse_remaining]
-fn parse_into<'a>(
-    root_form: Form,
+fn parse_into(
+    form: Form,
     tracker: OpenBoundsTracker,
     tokens: &[Tokens],
-    ast: &'a mut Node<Form>,
-) -> Result<&'a mut Node<Form>> {
-    let mut root = Tree::new(root_form);
+    mut ast: Tree<Form>,
+) -> Result<Tree<Form>> {
     let (inner, rest) = split_at_bound(tokens, tracker)?;
-    parse(inner, &mut root.root_mut())?;
-    ast.push_back(root);
-    parse_remaining(rest, ast)
-}
-fn parse_remaining<'a>(rest: &[Tokens], ast: &'a mut Node<Form>) -> Result<&'a mut Node<Form>> {
-    let mut empty_tree = Tree::new(Form::Root);
-    parse(rest, &mut empty_tree.root_mut())?;
-    ast.append(empty_tree.abandon());
+    ast.push_back(parse(inner, Tree::new(form))?);
+    let parsed = parse(rest, Tree::new(Form::Root))?;
+    parsed.iter().for_each(|n| ast.push_back(n.deep_clone()));
     Ok(ast)
 }
 
@@ -113,8 +103,6 @@ impl OpenBoundsTracker {
 }
 
 pub fn parse_string(code: &str) -> Result<Tree<Form>> {
-    let mut tree = Tree::new(Form::Root);
-    let root = tree.root_mut().get_mut();
-    parse(&tokenize(code), root)?;
-    Ok(tree)
+    let ast = parse(&tokenize(code), Tree::new(Form::Root))?;
+    Ok(ast)
 }

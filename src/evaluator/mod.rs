@@ -3,13 +3,14 @@ mod lambda;
 
 use std::collections::HashMap;
 
-use crate::{parser::parse_string, prelude::*};
+use crate::parser::parse_string;
+use crate::prelude::{display::PrintAST, *};
 use anyhow::*;
-use trees::{Forest, Node, Tree};
+use trees::{Node, Tree};
 
 pub fn eval(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
     match node.data().to_owned() {
-        Form::Root => unreachable!(),
+        Form::Root => node.iter().map(|n| eval(n, env.clone())).last().unwrap(),
         Form::CallExpression(symbol) => match symbol.as_str() {
             "if" => eval_if(node, env),
             "def" => def(node, env),
@@ -63,7 +64,7 @@ fn defn(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
     let function_name_node = body.pop_front().unwrap();
 
     let Form::Symbol(symbol) = function_name_node.data() else {
-        return Err(anyhow!("First argument of defn must be a symbol"))
+        return Err(anyhow!("First argument of defn must be a symbol"));
     };
 
     let lambda_args = body.pop_front().unwrap();
@@ -81,7 +82,7 @@ fn defn(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
 }
 
 fn build_lambda(node: &Node<Form>, env: EnvPointer, name: Option<String>) -> Result<RuntimeObject> {
-    let mut body = node.deep_clone_forest();
+    let mut body = node.deep_clone();
     let args_node = body.pop_front().unwrap();
     let args = args_node
         .root()
@@ -94,15 +95,16 @@ fn build_lambda(node: &Node<Form>, env: EnvPointer, name: Option<String>) -> Res
         })
         .collect::<Result<Vec<String>>>()?;
 
-    // let lambda_body = body
-
     let f = Lambda::new(name, args, body, env);
     Ok(RuntimeObject::RuntimeFunction(f))
 }
 fn eval_if(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
     //TODO: check for number of arguments
     if node.degree() != 3 {
-        return Err(anyhow!("If form must have 3 arguments"));
+        return Err(anyhow!(format!(
+            "If form must have 3 arguments it has {}",
+            node.degree()
+        )));
     }
 
     let mut args = node.deep_clone();
@@ -112,7 +114,7 @@ fn eval_if(node: &Node<Form>, env: EnvPointer) -> Result<RuntimeObject> {
     let choosen_arm = match res {
         RuntimeObject::Primitive(Literal::Bool(true)) => args.front().unwrap(),
         RuntimeObject::Primitive(Literal::Bool(false)) => args.back().unwrap(),
-        _ => todo!(),
+        _ => unreachable!(),
     };
 
     eval(choosen_arm, env)
@@ -142,15 +144,14 @@ fn eval_children(form: &Node<Form>, env: EnvPointer) -> Result<Vec<RuntimeObject
         .collect::<Result<Vec<RuntimeObject>>>()
 }
 
-fn eval_forest(forest: Forest<Form>, env: EnvPointer) -> Result<Vec<RuntimeObject>> {
-    forest
-        .iter()
+fn eval_forest(tree: Tree<Form>, env: EnvPointer) -> Result<Vec<RuntimeObject>> {
+    tree.iter()
         .map(|node| eval(node, env.clone()))
         .collect::<Result<Vec<RuntimeObject>>>()
 }
 pub fn eval_str(code: &str, env: EnvPointer) -> Result<RuntimeObject> {
     let ast = parse_string(code)?;
-    let forest = ast.deep_clone_forest();
-    let res = eval_forest(forest, env)?;
+    dbg!(ast.front().unwrap().print_ast().unwrap());
+    let res = eval_forest(ast, env)?;
     Ok(res.last().unwrap().clone())
 }

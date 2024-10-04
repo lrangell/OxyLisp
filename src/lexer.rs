@@ -1,6 +1,5 @@
 use crate::prelude::*;
 use lazy_static::lazy_static;
-use log::debug;
 use regex::Regex;
 
 lazy_static! {
@@ -11,7 +10,7 @@ lazy_static! {
 }
 
 pub fn tokenize(expression: &str) -> Vec<Tokens> {
-    let tokens = expression
+    expression
         .replace('(', " ( ")
         .replace(')', " ) ")
         .replace('[', " [ ")
@@ -38,8 +37,5 @@ pub fn tokenize(expression: &str) -> Vec<Tokens> {
                 _ => panic!("invalid token"),
             }
         })
-        .collect::<Vec<_>>();
-    debug!("Tokenizing code:\n {}", expression);
-    debug!("Tokens: {:?}", tokens);
-    tokens
+        .collect::<Vec<_>>()
 }
