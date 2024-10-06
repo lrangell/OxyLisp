@@ -151,7 +151,6 @@ fn eval_forest(tree: Tree<Form>, env: EnvPointer) -> Result<Vec<RuntimeObject>> 
 }
 pub fn eval_str(code: &str, env: EnvPointer) -> Result<RuntimeObject> {
     let ast = parse_string(code)?;
-    dbg!(ast.front().unwrap().print_ast().unwrap());
     let res = eval_forest(ast, env)?;
     Ok(res.last().unwrap().clone())
 }
